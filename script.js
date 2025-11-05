@@ -1,18 +1,14 @@
-// public/script.js (Port 7703 Fixed, SET/VALUE Handling)
+// public/script.js (Final Version: SET/VALUE References Removed)
 
 document.addEventListener('DOMContentLoaded', () => {
     // *** Configuration ***
-    
-    // Local Port 7703 ကိုသာ တိုက်ရိုက် သုံးရန်
     const WS_URL = "ws://127.0.0.1:7703"; 
-    const ANIMATION_INTERVAL = 5000; 
     
     // *** DOM Elements ***
     const liveNumberElement = document.getElementById('animating-2d');
     const digit1Element = document.getElementById('digit1');
     const digit2Element = document.getElementById('digit2');
-    const currentSetElement = document.getElementById('current-set'); // New
-    const currentValueElement = document.getElementById('current-value'); // New
+    // SET/VALUE များကို index.html မှ ဖယ်ရှားပြီးဖြစ်၍ ၎င်းတို့နှင့် သက်ဆိုင်သော references များကို ဖယ်ရှားလိုက်သည်
     const checkmarkElement = document.getElementById('checkmark');
     const updatedTimeElement = document.getElementById('last-updated-time');
     const resultBoxes = Array.from({length: 6}, (_, i) => document.getElementById(`result-box-${i}`));
@@ -20,23 +16,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // *** Utility Functions (Animation) ***
     
-    // Animation ပြန်စတင်တဲ့အခါ SET/VALUE ကို Server က ထုတ်ပေးတဲ့ဂဏန်းဖြင့် ပြသရန်
     function updateAnimationDigits(set, value) {
-        // Live 2D က VALUE နဲ့ SET ကို ပေါင်းပြီး ပြရမှာဖြစ်တဲ့အတွက်
-        const live2D = value + set; 
+        // Server က ပို့ပေးတဲ့ SET/VALUE ရဲ့ နောက်ဆုံးဂဏန်းကို 2D အဖြစ်ယူပြီး ပြသရန်
+        const live2D = value.slice(-1) + set.slice(-1); 
         digit1Element.textContent = live2D[0];
         digit2Element.textContent = live2D[1];
-        currentSetElement.textContent = set;
-        currentValueElement.textContent = value;
     }
 
     function startAnimation() {
         if (animationTimer) return; 
         liveNumberElement.classList.add('blinking'); 
-        
-        // Live Animation ဖြစ်နေစဉ် SET/VALUE ကို Server က ပို့ပေးတဲ့ Random ဂဏန်းဖြင့် ပြသမည်
-        // Animation ပြောင်းလဲမှုက Server side data ပေါ်မူတည်သည်။
-        // Client-side ကနေ Random ထပ်မထုတ်တော့ဘဲ Server data ရောက်တဲ့အခါ update လုပ်မည်။
     }
     
     function stopAnimation(result, set, value) {
@@ -46,11 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         liveNumberElement.classList.remove('blinking'); 
         
-        // ဂဏန်းထွက်ရင်တော့ ထွက်ဂဏန်း (Value + Set) ကို တိကျစွာ ပြသမည်
+        // ဂဏန်းထွက်ရင်တော့ ထွက်ဂဏန်းကို တိကျစွာ ပြသမည်
         digit1Element.textContent = result[0];
         digit2Element.textContent = result[1];
-        currentSetElement.textContent = set;
-        currentValueElement.textContent = value;
     }
     
     // *** Global Functions for HTML Navigation ***
@@ -68,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const socket = new WebSocket(WS_URL);
 
     socket.onopen = () => {
-        console.log('Connected to Realtime Server via WebSocket.');
+        // console.log('Connected to Realtime Server via WebSocket.'); // Log ကို ဖျက်ထားသည်
     };
 
     socket.onmessage = (event) => {
@@ -96,9 +83,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 checkmarkElement.textContent = "✔️"; // အစိမ်းရောင် အမှန်ခြစ်
                 updatedTimeElement.textContent = `Updated: ${data.timestamp}`;
             } else {
-                // Animation ပြန်စရမည့် အခြေအနေ
+                // Animation ပြန်စရမည့် အခြေအနေ (5s interval ဖြင့် Server က Data ပို့မည်)
                 startAnimation();
-                // Animation စနေစဉ် Server က ပို့ပေးတဲ့ SET/VALUE ကို ပြောင်းပေးပါ
                 updateAnimationDigits(currentSet, currentValue); 
                 checkmarkElement.classList.add('hidden'); 
                 checkmarkElement.textContent = "✔️"; 
@@ -117,7 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     if(liveStatus === "closed") {
                          box.querySelector('.box-result').textContent = "--";
                     } else {
-                        // ထွက်ဂဏန်း 10:00 AM မှာ 10:01 AM မှ ထွက်ဖို့အတွက် Draw Logic ကို Server မှာ လုပ်ပြီးပါပြီ။
                         box.querySelector('.box-result').textContent = result;
                     }
                 }
