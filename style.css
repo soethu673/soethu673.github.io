@@ -78,7 +78,7 @@ body {
 
 /* Animation Style (Blinking) */
 .blinking {
-    animation: blinker 0.8s step-end infinite alternate;
+    animation: blinker 0.1s step-end infinite alternate;
 }
 
 @keyframes blinker {
