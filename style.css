@@ -76,16 +76,17 @@ body {
     margin: 10px 0;
 }
 
-/* Animation Style (Blinking) */
+/* Smooth Fade In/Out Animation for 2D Number */
 .blinking {
-    animation: blinker 0.1s step-end infinite alternate;
+    animation: fadeInOut 3s ease-in-out infinite;
 }
 
-@keyframes blinker {
-    0% { opacity: 1;}
-    25% { opacity: 2; }
-    50% { opacity: 0.1;}
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: scale(0.95); }
+    50% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.05); }
 }
+
 
 .update-info {
     font-size: 0.9rem;
