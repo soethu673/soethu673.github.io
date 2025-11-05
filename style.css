@@ -83,7 +83,7 @@ body {
 
 @keyframes blinker {
     0% { opacity: 1;}
-    25% { opacity: 0; }
+    25% { opacity: 2; }
     50% { opacity: 0.1;}
 }
 
