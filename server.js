@@ -174,13 +174,14 @@ function checkDrawTimeAndPublish() {
 setInterval(checkDrawTimeAndPublish, 5000); 
 
 function broadcastResults() {
+    const currentTimestamp = getMyanmarTime().format('DD/MM/YYYY hh:mm:ss A') 
     const dataToSend = {
         live: currentLiveResult,
         set: currentSet,
         value: currentValue,
         daily: dailyResults,
-        status: liveResultStatus, 
-        timestamp: getMyanmarTime().format('DD/MM/YYYY hh:mm:ss A') 
+        status: liveResultStatus,  
+        timestamp: currentTimestamp
     };
 
     wss.clients.forEach(client => {
