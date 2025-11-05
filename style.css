@@ -78,11 +78,13 @@ body {
 
 /* Animation Style (Blinking) */
 .blinking {
-    animation: blinker 0.1s step-end infinite alternate;
+    animation: blinker 1s step-end infinite alternate;
 }
 
 @keyframes blinker {
+    0% { opacity: 1;}
     50% { opacity: 0; }
+    100% { opacity: 0.1;}
 }
 
 .update-info {
