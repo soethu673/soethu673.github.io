@@ -1,11 +1,11 @@
-// server.js (Port 7703, Time Security, SET/VALUE, Tuesday Close)
+// server.js (Final Version: SET/VALUE Hidden, 5s Update, Time Security)
 
 const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 const moment = require('moment-timezone'); 
 const path = require('path');
-const axios = require('axios'); // Time Security အတွက်
+const axios = require('axios'); 
 
 const app = express();
 const server = http.createServer(app);
@@ -14,10 +14,10 @@ const wss = new WebSocket.Server({ server });
 // *** 1. Configuration & Data Stores ***
 const MYANMAR_TIMEZONE = 'Asia/Yangon'; 
 const HOLD_DURATION_MINUTES = 10; 
-const API_TIME_URL = 'http://worldtimeapi.org/api/timezone/Asia/Yangon'; // Time Security
+const API_TIME_URL = 'http://worldtimeapi.org/api/timezone/Asia/Yangon'; 
 
 const DRAW_TIMES_CONFIG = [
-    { time: "10:00", label: "10:00 AM" }, // 10:00 ထွက်ပြီး 10:01 မှ Live စ
+    { time: "10:00", label: "10:00 AM" }, 
     { time: "12:00", label: "12:00 PM" },
     { time: "14:00", label: "2:00 PM" },
     { time: "16:00", label: "4:00 PM" },
@@ -33,57 +33,32 @@ let dailyResults = DRAW_TIMES_CONFIG.map(config => ({
 }));
 
 let currentLiveResult = "--";
-let currentSet = "--"; // New: SET ဂဏန်း
-let currentValue = "--"; // New: VALUE ဂဏန်း
-let liveResultStatus = "animating"; // "animating", "hold", or "closed"
+let currentSet = "------"; 
+let currentValue = "--------"; 
+let liveResultStatus = "animating"; 
 
-// Server ရဲ့ Real-time ကို ထိန်းထားဖို့
 let serverTime = moment().tz(MYANMAR_TIMEZONE);
 
 // *** 2. Utility Functions ***
 
-// API Time Service မှ အချိန်ကို ရယူခြင်း (Time Security)
 async function fetchServerTime() {
     try {
         const response = await axios.get(API_TIME_URL);
         const datetime = response.data.datetime;
         serverTime = moment(datetime).tz(MYANMAR_TIMEZONE);
-        console.log(`[Time Sync] Server Time: ${serverTime.format('YYYY-MM-DD HH:mm:ss')}`);
+        // console.log(`[Time Sync] Server Time: ${serverTime.format('YYYY-MM-DD HH:mm:ss')}`); // Log ကို ဖျက်ထားသည်
     } catch (error) {
-        console.error("[Time Sync] Error fetching API time. Using system time.", error.message);
+        // Time Sync Error ပေါ်ရင် system time ကို သုံးမည်
+        // console.error("[Time Sync] Error fetching API time. Using system time.", error.message); // Log ကို ဖျက်ထားသည်
         serverTime = moment().tz(MYANMAR_TIMEZONE);
     }
 }
-// 1 မိနစ်တိုင်း အချိန်ကို စစ်ဆေးပါ
 setInterval(fetchServerTime, 60000); 
 
 function getMyanmarTime() {
-    return serverTime; // API မှ ရယူထားသော Server Time ကိုသာ အသုံးပြုမည်
+    return serverTime; 
 }
 
-function generateSetAndValue() {
-    // 000.00 မှ 999.99 အတွင်း Random ဂဏန်းတစ်ခု ဖန်တီးပါ
-    const floatNumber = Math.random() * 999.99;
-    const numberStr = floatNumber.toFixed(2); // ဥပမာ: "123.45"
-    
-    // VALUE: ဒသမရဲ့ အရှေ့ဆုံး ဂဏန်း (ဥပမာ: 123.45 မှ 3)
-    const valueDigit = numberStr.split('.')[0].slice(-1);
-    
-    // SET: ဒသမရဲ့ နောက်ဆုံး ဂဏန်း (ဥပမာ: 123.45 မှ 5)
-    const setDigit = numberStr.split('.')[1].slice(-1);
-
-    return { set: setDigit, value: valueDigit };
-}
-
-function generate2D() {
-    const { set, value } = generateSetAndValue();
-    return {
-        result: value + set, // ဥပမာ: Value=3, Set=5 ဆိုရင် 35
-        set: set,
-        value: value
-    };
-}
-// ... (resetDailyResults function သည် ယခင်အတိုင်း ထားရှိပါမည်) ...
 function resetDailyResults(myanmarTime) {
     if (myanmarTime.hour() === 0 && myanmarTime.minute() === 5) {
         dailyResults = DRAW_TIMES_CONFIG.map(config => ({
@@ -93,24 +68,43 @@ function resetDailyResults(myanmarTime) {
             drawnTime: null 
         }));
         currentLiveResult = "--";
-        currentSet = "--";
-        currentValue = "--";
+        currentSet = "------";
+        currentValue = "--------";
         liveResultStatus = "animating";
     }
 }
 
+// ** SET/VALUE ဂဏန်းများကို Format အသစ်ဖြင့် ထုတ်လုပ်ခြင်း **
+function generateSetAndValue() {
+    // SET (ဒသမအပါ ၆ လုံး) - ဥပမာ: 123.456
+    const setNum = Math.random() * 999.999;
+    const setStr = setNum.toFixed(3); 
+    
+    // VALUE (ဒသမအပါ ၈ လုံး) - ဥပမာ: 1234.5678
+    const valueNum = Math.random() * 9999.9999;
+    const valueStr = valueNum.toFixed(4); 
 
-// *** 3. Core Logic (Tuesday Close & Draw) ***
+    // 2D ဂဏန်းထုတ်ဖို့အတွက် VALUE ရဲ့ နောက်ဆုံးဂဏန်း နဲ့ SET ရဲ့ နောက်ဆုံးဂဏန်းကို ယူပါ
+    const resultValueDigit = valueStr.slice(-1);
+    const resultSetDigit = setStr.slice(-1);
+
+    return { 
+        result: resultValueDigit + resultSetDigit, 
+        set: setStr, 
+        value: valueStr 
+    };
+}
+
 
 function checkDrawTimeAndPublish() {
     const now = getMyanmarTime();
     resetDailyResults(now);
 
-    // *** အင်္ဂါနေ့ စစ်ဆေးခြင်း (2 = Tuesday) ***
+    // *** အင်္ဂါနေ့ စစ်ဆေးခြင်း ***
     if (now.day() === 2) {
         currentLiveResult = "--";
-        currentSet = "--"; 
-        currentValue = "--";
+        currentSet = "------"; 
+        currentValue = "--------";
         liveResultStatus = "closed"; 
         dailyResults.forEach(d => {
             d.result = "--"; 
@@ -126,15 +120,11 @@ function checkDrawTimeAndPublish() {
         const draw = dailyResults[i];
         const timeConfig = DRAW_TIMES_CONFIG[i];
         
-        // ဂဏန်းထွက်ရမည့် အချိန် (10:00 AM)
         const drawTimeMoment = moment.tz(`${now.format('YYYY-MM-DD')} ${timeConfig.time}`, 'YYYY-MM-DD HH:mm', MYANMAR_TIMEZONE);
-        
-        // ဂဏန်းစပြီး Live စရမည့် အချိန် (10:00 AM ထွက်ပြီး 10:10 AM မှာ Animation ပြန်စ)
-        const startAnimationTime = drawTimeMoment.clone().add(HOLD_DURATION_MINUTES, 'minutes');
 
-        // A. Draw Time ရောက်လျှင် (10:00:00 မှ 10:00:59 အတွင်း)
+        // A. Draw Time ရောက်လျှင်
         if (now.isSame(drawTimeMoment, 'minute') && draw.result === "--") {
-            const { result, set, value } = generate2D();
+            const { result, set, value } = generateSetAndValue(); 
             
             draw.result = result;
             draw.drawnTime = now.clone(); 
@@ -145,26 +135,32 @@ function checkDrawTimeAndPublish() {
             shouldAnimate = false;
         }
 
-        // B. Hold Time အတွင်း ရှိနေပါက (10:00:00 မှ 10:09:59 အတွင်း)
+        // B. Hold Time အတွင်း ရှိနေပါက
         if (draw.drawnTime) {
             const holdUntil = drawTimeMoment.clone().add(HOLD_DURATION_MINUTES, 'minutes');
             
-            if (now.isBefore(holdUntil)) { // 10:10 AM မတိုင်ခင်ဆိုရင် ရပ်ထား
+            if (now.isBefore(holdUntil)) { 
                 currentLiveResult = draw.result; 
-                currentSet = draw.result[1]; // ထွက်ပြီးသားဂဏန်းရဲ့ နောက်ဆုံးဂဏန်း
-                currentValue = draw.result[0]; // ထွက်ပြီးသားဂဏန်းရဲ့ ရှေ့ဆုံးဂဏန်း
+                
+                // Hold အချိန်မှာ SET/VALUE ကို ထွက်ဂဏန်းနဲ့ ကိုက်အောင် ပြန်ညှိခြင်း (Logic သက်သက်)
+                // ဥပမာ: 2D result 56 ထွက်ရင်၊ SET/VALUE ကို 5 နဲ့ 6 အဆုံးသတ်တဲ့ ဂဏန်းအဖြစ် Random ထုတ်ပါ
+                const heldSetNum = Math.random() * 999.990; 
+                const heldValueNum = Math.random() * 9999.9990;
+                
+                currentSet = heldSetNum.toFixed(3).slice(0, 5) + draw.result[1]; 
+                currentValue = heldValueNum.toFixed(4).slice(0, 7) + draw.result[0]; 
+                
                 liveResultStatus = "hold";
                 shouldAnimate = false;
             } else {
-                draw.drawnTime = null; // Hold ပြီးလို့ Animation ပြန်စတော့မယ်
+                draw.drawnTime = null; 
             }
         }
     }
 
     // C. Animation ပြန်စတင်ခြင်း
     if (shouldAnimate) {
-        // Animation ပြန်စတင်တဲ့အခါ SET/VALUE ကို Random ပြန်ထုတ်ပေးရပါမယ်
-        const { set, value } = generateSetAndValue();
+        const { set, value } = generateSetAndValue(); 
         currentLiveResult = "--"; 
         currentSet = set;
         currentValue = value;
@@ -174,8 +170,8 @@ function checkDrawTimeAndPublish() {
     broadcastResults();
 }
 
-// 2 စက္ကန့်တိုင်း စစ်ဆေးပါ
-setInterval(checkDrawTimeAndPublish, 2000); 
+// *** 5 စက္ကန့်တိုင်း စစ်ဆေးပါ (Animation Interval) ***
+setInterval(checkDrawTimeAndPublish, 5000); 
 
 function broadcastResults() {
     const dataToSend = {
@@ -195,20 +191,20 @@ function broadcastResults() {
 }
 
 wss.on('connection', ws => {
-    console.log('Client connected');
+    // console.log('Client connected'); // Log ကို ဖျက်ထားသည်
     broadcastResults(); 
 });
 
 app.use(express.static(path.join(__dirname, '.')));
 
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// *** PORT 7703 ကို တိုက်ရိုက် သတ်မှတ်ခြင်း ***
+// *** PORT 7703 ***
 const PORT = 7703; 
 
-// အရင်ဆုံး Time ကို စစ်ဆေးပြီးမှ Server စတင်ပါ
 fetchServerTime().then(() => {
     server.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);
