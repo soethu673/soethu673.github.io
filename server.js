@@ -53,7 +53,7 @@ async function fetchServerTime() {
         serverTime = moment().tz(MYANMAR_TIMEZONE);
     }
 }
-setInterval(fetchServerTime, 60000); 
+setInterval(fetchServerTime, 5000); 
 
 function getMyanmarTime() {
     return serverTime; 
