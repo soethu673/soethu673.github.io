@@ -2,7 +2,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     // *** Configuration ***
-    const WS_URL = "ws://127.0.0.1:7703"; 
+    const WS_URL = "wss://china-2d-live.onrender.com";
     
     // *** DOM Elements ***
     const liveNumberElement = document.getElementById('animating-2d');
