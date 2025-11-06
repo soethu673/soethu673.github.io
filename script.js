@@ -14,6 +14,85 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultBoxes = Array.from({length: 6}, (_, i) => document.getElementById(`result-box-${i}`));
     let animationTimer = null; 
 
+    // * China 2D History System *
+    let china2dHistory = JSON.parse(localStorage.getItem('china2d_history')) || [];
+
+    // Show History Modal
+    window.showHistory = function() {
+        updateHistoryDisplay();
+        document.getElementById('history-modal').classList.remove('hidden');
+    };
+
+    // Close History Modal
+    function closeHistory() {
+        document.getElementById('history-modal').classList.add('hidden');
+    }
+
+    // Update History Display
+    function updateHistoryDisplay() {
+        const today = new Date();
+        const dateString = today.toLocaleDateString('en-GB');
+        
+        // Update date display
+        document.getElementById('history-current-date').textContent = dateString;
+        
+        // Get today's results
+        const todayResults = china2dHistory.filter(item => item.date === dateString);
+        
+        // Update each time slot
+        const timeSlots = document.querySelectorAll('.time-slot');
+        timeSlots.forEach(slot => {
+            const time = slot.getAttribute('data-time');
+            const resultElement = slot.querySelector('.result-number');
+            
+            // Find result for this time
+            const result = todayResults.find(item => item.time === time);
+            
+            if (result && result.number) {
+                resultElement.textContent = result.number;
+                resultElement.style.background = '#333';
+                resultElement.style.color = 'white';
+            } else {
+                resultElement.textContent = '--';
+                resultElement.style.background = '#f8f8f8';
+                resultElement.style.color = '#333';
+            }
+        });
+    }
+
+    // Save to History
+    function saveToHistory(drawData) {
+        if (drawData.result && drawData.result !== "--") {
+            const today = new Date().toLocaleDateString('en-GB');
+            const time = drawData.label;
+            const number = drawData.result.toString().padStart(2, '0');
+            
+            // Check if already exists
+            const exists = china2dHistory.find(item => 
+                item.date === today && item.time === time
+            );
+            
+            if (!exists) {
+                china2dHistory.push({
+                    date: today,
+                    time: time,
+                    number: number,
+                    timestamp: new Date().toISOString()
+                });
+                
+                // Keep only last 7 days
+                const sevenDaysAgo = new Date();
+                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                
+                china2dHistory = china2dHistory.filter(item => 
+                    new Date(item.timestamp) > sevenDaysAgo
+                );
+                
+                localStorage.setItem('china2d_history', JSON.stringify(china2dHistory));
+            }
+        }
+    }
+
     // *** Utility Functions (Animation) ***
     
     function updateAnimationDigits(set, value) {
@@ -46,9 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
         history.back(); 
     };
 
-    window.showHistory = function() {
-        alert("History Function: ထွက်ပြီးသား ဂဏန်းဟောင်း ၆ ကြိမ်စာကို DD/MM/YY နဲ့အတူ ဖော်ပြဖို့ Modal ကို ဒီနေရာမှာ ပြသရပါမယ်။");
-    };
+    
     
     // *** WebSocket Connection ***
     
@@ -67,6 +144,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentValue = data.value; 
             const liveStatus = data.status; 
             let dailyResults = data.daily || []; 
+
+            // Save completed results to history
+            if (data.daily && data.status !== "closed") {
+                data.daily.forEach(draw => {
+                    saveToHistory(draw);
+                });
+            }
             
             // *** 1. Live ဂဏန်း Update နှင့် Animation/Closed ထိန်းချုပ်ခြင်း ***
             if (liveStatus === "closed") {
@@ -120,4 +204,10 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.onerror = (error) => {
         console.error('WebSocket Error:', error);
     };
+    // Close modal when clicking outside
+    document.getElementById('history-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeHistory();
+        }
+   });
 });
