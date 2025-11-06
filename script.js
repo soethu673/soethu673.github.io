@@ -1,4 +1,4 @@
-// public/script.js (Fixed Version)
+// public/script.js (Simple Cached Results Only)
 
 document.addEventListener('DOMContentLoaded', () => {
     // *** Configuration ***
@@ -13,266 +13,85 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultBoxes = Array.from({length: 6}, (_, i) => document.getElementById(`result-box-${i}`));
     let animationTimer = null; 
 
-    // *** China 2D History System ***
-    let china2dHistory = JSON.parse(localStorage.getItem('china2d_history')) || [];
-    
-    // *** Cached Data System for Render Sleep ***
-    let lastKnownData = JSON.parse(localStorage.getItem('last_known_data')) || {};
+    // *** Simple Cached Results System ***
+    let currentResults = JSON.parse(localStorage.getItem('current_results')) || {};
 
-    // *** Initialize with cached data ***
+    // *** Initialize - Render Sleep ဖြစ်မှသာ Cached Data ပြမယ် ***
     function initializeDisplay() {
-        console.log('🔄 Initializing display...');
+        console.log('🔄 Checking WebSocket connection...');
         
-        // Render sleep ဖြစ်နေရင် last known data ကိုပြမယ်
-        if (Object.keys(lastKnownData).length > 0) {
-            updateDisplayFromCachedData(lastKnownData);
-            console.log('📁 Using cached data from localStorage');
-        } else {
-            console.log('📭 No cached data found');
-        }
-        
-        // History data ကိုလည်းပြမယ်
-        updateHistoryDisplay();
+        // WebSocket connect မရရင်ပဲ cached data ပြမယ်
+        // WebSocket ရှိရင် live data ကိုပဲသုံးမယ်
     }
 
-    // *** Save data to localStorage ***
-    function saveToStorage(data) {
+    // *** Save results when WebSocket is working ***
+    function saveCurrentResults(data) {
         try {
-            // Current data save
-            lastKnownData = {
-                live: data.live,
-                set: data.set,
-                value: data.value,
-                status: data.status,
-                timestamp: data.timestamp,
-                daily: data.daily || []
-            };
-            
-            localStorage.setItem('last_known_data', JSON.stringify(lastKnownData));
-            
-            // History data save
-            if (data.daily && data.status !== "closed") {
-                data.daily.forEach(draw => {
-                    saveToHistory(draw);
+            if (data.daily && data.daily.length > 0) {
+                // ဂဏန်းထွက်တိုင်း သိမ်းမယ်
+                data.daily.forEach((draw) => {
+                    if (draw.result && draw.result !== "--") {
+                        currentResults[draw.label] = draw.result.toString().padStart(2, '0');
+                    }
                 });
+                
+                localStorage.setItem('current_results', JSON.stringify(currentResults));
+                console.log('💾 Results saved for sleep protection');
             }
-            
-            console.log('💾 Data saved to localStorage');
         } catch (e) {
-            console.error('❌ Error saving to localStorage:', e);
+            console.error('Error saving results:', e);
         }
     }
 
-    // *** Update display from cached data ***
-    function updateDisplayFromCachedData(data) {
-        console.log('📊 Updating from cached data:', data);
+    // *** Show cached results ONLY when WebSocket fails ***
+    function showCachedResults() {
+        console.log('🔌 WebSocket failed - Showing cached results');
         
-        const liveResult = data.live ? data.live.toString().padStart(2, '0') : "--"; 
-        const currentSet = data.set; 
-        const currentValue = data.value; 
-        const liveStatus = data.status; 
-        let dailyResults = data.daily || []; 
-        
-        // *** 1. Live ဂဏန်း Update နှင့် Animation/Closed ထိန်းချုပ်ခြင်း ***
-        if (liveStatus === "closed") {
-            stopAnimation("--", "--", "--"); 
-            if (checkmarkElement) {
-                checkmarkElement.classList.remove('hidden'); 
-                checkmarkElement.textContent = "CLOSED"; 
-            }
-            if (updatedTimeElement) {
-                updatedTimeElement.textContent = "TUESDAY CLOSED"; 
-            }
-        }
-        else if (liveStatus === "hold" && liveResult !== "--") {
-            stopAnimation(liveResult, currentSet, currentValue);
-            if (checkmarkElement) {
-                checkmarkElement.classList.remove('hidden'); 
-                checkmarkElement.textContent = "✔️";
-            }
-            if (updatedTimeElement) {
-                updatedTimeElement.textContent = `Updated: ${data.timestamp}`;
-            }
-        } else {
-            startAnimation();
-            updateAnimationDigits(currentSet, currentValue); 
-            if (checkmarkElement) {
-                checkmarkElement.classList.add('hidden'); 
-            }
-            if (updatedTimeElement) {
-                updatedTimeElement.textContent = `Updated: ${data.timestamp}`;
-            }
-        }
-
-        // 2. Daily History ၆ ကွက် ဖြည့်သွင်းခြင်း
-        resultBoxes.forEach((box, index) => {
-            if (box) {
-                const drawData = dailyResults[index];
-                const timeElement = box.querySelector('.box-time');
-                const resultElement = box.querySelector('.box-result');
-                
-                if (timeElement && resultElement) {
-                    if (drawData) {
-                        timeElement.textContent = drawData.label; 
-                        const result = drawData.result && drawData.result !== "--" 
-                                        ? drawData.result.toString().padStart(2, '0') 
-                                        : "--";
+        if (Object.keys(currentResults).length > 0) {
+            resultBoxes.forEach((box) => {
+                if (box) {
+                    const timeElement = box.querySelector('.box-time');
+                    const resultElement = box.querySelector('.box-result');
+                    
+                    if (timeElement && resultElement) {
+                        const timeLabel = timeElement.textContent;
+                        const cachedResult = currentResults[timeLabel];
                         
-                        if (liveStatus === "closed") {
-                            resultElement.textContent = "--";
-                        } else {
-                            resultElement.textContent = result;
+                        if (cachedResult) {
+                            resultElement.textContent = cachedResult;
                         }
                     }
                 }
-            }
-        });
-    }
-
-    // Show History Modal
-    window.showHistory = function() {
-        updateHistoryDisplay();
-        document.getElementById('history-modal').classList.remove('hidden');
-    };
-
-    // Close History Modal
-    window.closeHistory = function() {
-        document.getElementById('history-modal').classList.add('hidden');
-    }
-
-    // Update History Display
-    function updateHistoryDisplay() {
-        const today = new Date();
-        const dateString = today.toLocaleDateString('en-GB');
-        
-        // Update date display
-        document.getElementById('history-current-date').textContent = dateString;
-        
-        // Get today's results
-        const todayResults = china2dHistory.filter(item => item.date === dateString);
-        
-        // Update each time slot
-        const timeSlots = document.querySelectorAll('.time-slot');
-        timeSlots.forEach(slot => {
-            const time = slot.getAttribute('data-time');
-            const resultElement = slot.querySelector('.result-number');
+            });
             
-            // Find result for this time
-            const result = todayResults.find(item => item.time === time);
-            
-            if (result && result.number) {
-                resultElement.textContent = result.number;
-                resultElement.style.background = '#333';
-                resultElement.style.color = 'white';
-            } else {
-                resultElement.textContent = '--';
-                resultElement.style.background = '#f8f8f8';
-                resultElement.style.color = '#333';
-            }
-        });
-    }
-
-    // Save to History
-    function saveToHistory(drawData) {
-        if (drawData.result && drawData.result !== "--") {
-            const today = new Date().toLocaleDateString('en-GB');
-            const time = drawData.label;
-            const number = drawData.result.toString().padStart(2, '0');
-            
-            // Check if already exists
-            const exists = china2dHistory.find(item => 
-                item.date === today && item.time === time
-            );
-            
-            if (!exists) {
-                china2dHistory.push({
-                    date: today,
-                    time: time,
-                    number: number,
-                    timestamp: new Date().toISOString()
-                });
-                
-                // Keep only last 7 days
-                const sevenDaysAgo = new Date();
-                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-                
-                china2dHistory = china2dHistory.filter(item => 
-                    new Date(item.timestamp) > sevenDaysAgo
-                );
-                
-                localStorage.setItem('china2d_history', JSON.stringify(china2dHistory));
+            if (updatedTimeElement) {
+                updatedTimeElement.textContent = "Using cached data - " + new Date().toLocaleString();
             }
         }
     }
 
-    // *** Utility Functions (Animation) ***
-    
-    function updateAnimationDigits(set, value) {
-        if (digit1Element && digit2Element) {
-            const live2D = value.slice(-1) + set.slice(-1); 
-            digit1Element.textContent = live2D[0];
-            digit2Element.textContent = live2D[1];
-        }
-    }
-
-    function startAnimation() {
-        if (animationTimer) return; 
-        if (liveNumberElement) {
-            liveNumberElement.classList.add('blinking'); 
-        }
-    }
-    
-    function stopAnimation(result, set, value) {
-        if (animationTimer) {
-            clearInterval(animationTimer);
-            animationTimer = null;
-        }
-        if (liveNumberElement) {
-            liveNumberElement.classList.remove('blinking'); 
-        }
-        
-        if (digit1Element && digit2Element) {
-            digit1Element.textContent = result[0];
-            digit2Element.textContent = result[1];
-        }
-    }
-    
-    // *** Global Functions for HTML Navigation ***
-    
-    window.handleExit = function() {
-        history.back(); 
-    };
-    
     // *** WebSocket Connection ***
-    
     const socket = new WebSocket(WS_URL);
 
     socket.onopen = () => {
-        console.log('✅ Connected to WebSocket server');
+        console.log('✅ WebSocket Connected - Using LIVE data');
+        if (updatedTimeElement) {
+            updatedTimeElement.textContent = "Connected - Live data";
+        }
     };
 
     socket.onmessage = (event) => {
         try {
             const data = JSON.parse(event.data);
-            console.log('📨 Received WebSocket data:', data);
             
-            // Save data to localStorage first
-            saveToStorage(data);
-            
+            // Live data ကိုပဲပြမယ်
             const liveResult = data.live ? data.live.toString().padStart(2, '0') : "--"; 
             const currentSet = data.set; 
             const currentValue = data.value; 
             const liveStatus = data.status; 
             let dailyResults = data.daily || []; 
             
-            // Save completed results to history
-            if (data.daily && data.status !== "closed") {
-                data.daily.forEach(draw => {
-                    saveToHistory(draw);
-                });
-            }
-            
-            // *** 1. Live ဂဏန်း Update နှင့် Animation/Closed ထိန်းချုပ်ခြင်း ***
+            // *** Live ဂဏန်း Update ***
             if (liveStatus === "closed") {
                 stopAnimation("--", "--", "--"); 
                 if (checkmarkElement) {
@@ -303,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // 2. Daily History ၆ ကွက် ဖြည့်သွင်းခြင်း
+            // *** Daily Results - Live Data ကိုပဲပြမယ် ***
             resultBoxes.forEach((box, index) => {
                 if (box) {
                     const drawData = dailyResults[index];
@@ -311,43 +130,91 @@ document.addEventListener('DOMContentLoaded', () => {
                     const resultElement = box.querySelector('.box-result');
                     
                     if (timeElement && resultElement && drawData) {
-                        timeElement.textContent = drawData.label; 
                         const result = drawData.result && drawData.result !== "--" 
                                         ? drawData.result.toString().padStart(2, '0') 
                                         : "--";
                         
-                        if (liveStatus === "closed") {
-                            resultElement.textContent = "--";
-                        } else {
-                            resultElement.textContent = result;
-                        }
+                        resultElement.textContent = result;
                     }
                 }
             });
 
+            // *** ဂဏန်းထွက်ရင် သိမ်းထားမယ် (Render Sleep အတွက်) ***
+            saveCurrentResults(data);
+
         } catch (e) {
-            console.error("Error processing WebSocket data:", e);
+            console.error("Error processing data:", e);
         }
     };
 
-    // *** WebSocket close and error handlers ***
+    // *** WebSocket FAILED ဖြစ်မှသာ Cached Data ပြမယ် ***
     socket.onclose = () => {
-        console.warn('🔌 Disconnected from server. Using cached data.');
-        initializeDisplay();
+        console.log('🔌 WebSocket Closed - Render Sleep Detected');
+        showCachedResults(); // ဒီမှာပဲ cached data ပြမယ်
     };
 
     socket.onerror = (error) => {
-        console.error('❌ WebSocket Error. Using cached data.', error);
-        initializeDisplay();
+        console.log('❌ WebSocket Error - Render Sleep Detected');
+        showCachedResults(); // ဒီမှာပဲ cached data ပြမယ်
     };
 
-    // *** Initialize with cached data on page load ***
-    initializeDisplay();
+    // *** Utility Functions ***
+    function updateAnimationDigits(set, value) {
+        if (digit1Element && digit2Element) {
+            const live2D = value.slice(-1) + set.slice(-1); 
+            digit1Element.textContent = live2D[0];
+            digit2Element.textContent = live2D[1];
+        }
+    }
+
+    function startAnimation() {
+        if (animationTimer) return; 
+        if (liveNumberElement) {
+            liveNumberElement.classList.add('blinking'); 
+        }
+    }
+    
+    function stopAnimation(result, set, value) {
+        if (animationTimer) {
+            clearInterval(animationTimer);
+            animationTimer = null;
+        }
+        if (liveNumberElement) {
+            liveNumberElement.classList.remove('blinking'); 
+        }
+        
+        if (digit1Element && digit2Element) {
+            digit1Element.textContent = result[0];
+            digit2Element.textContent = result[1];
+        }
+    }
+
+    // *** Global Functions ***
+    window.showHistory = function() {
+        const modal = document.getElementById('history-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
+    };
+
+    window.closeHistory = function() {
+        const modal = document.getElementById('history-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+    }
+
+    window.handleExit = function() {
+        history.back(); 
+    };
 
     // Close modal when clicking outside
-    document.getElementById('history-modal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeHistory();
-        }
-    });
+    const historyModal = document.getElementById('history-modal');
+    if (historyModal) {
+        historyModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeHistory();
+            }
+        });
+    }
 });
