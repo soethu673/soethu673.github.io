@@ -23,8 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('history-modal').classList.remove('hidden');
     };
 
-    // Close History Modal
-    function closeHistory() {
+    window.closeHistory= function() {
         document.getElementById('history-modal').classList.add('hidden');
     }
 
@@ -36,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Update date display
         document.getElementById('history-current-date').textContent = dateString;
         
-        // Get today's results
+        // Get today's results from your data
         const todayResults = china2dHistory.filter(item => item.date === dateString);
         
         // Update each time slot
