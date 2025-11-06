@@ -99,7 +99,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (checkmarkElement) {
                 checkmarkElement.classList.remove('hidden');
 
-., [11/7/2025 1:08 AM]
 checkmarkElement.textContent = "✔️";
             }
             if (updatedTimeElement) {
@@ -200,7 +199,6 @@ checkmarkElement.textContent = "✔️";
         });
     }
 
-., [11/7/2025 1:08 AM]
 // Save to History
     function saveToHistory(drawData) {
         if (drawData.result && drawData.result !== "--") {
@@ -314,7 +312,6 @@ checkmarkElement.textContent = "✔️";
             else if (liveStatus === "hold" && liveResult !== "--") {
                 stopAnimation(liveResult, currentSet, currentValue);
 
-., [11/7/2025 1:08 AM]
 if (checkmarkElement) {
                     checkmarkElement.classList.remove('hidden'); 
                     checkmarkElement.textContent = "✔️";
