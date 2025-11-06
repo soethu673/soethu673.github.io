@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const digit2Element = document.getElementById('digit2');
     const checkmarkElement = document.getElementById('checkmark');
     const updatedTimeElement = document.getElementById('last-updated-time');
-    const resultBoxes = Array.from({length: 6}, (_, i) => document.getElementById(result-box-${i}));
+    const resultBoxes = Array.from({length: 6}, (_, i) => document.getElementById(`result-box-${i}`));
     let animationTimer = null; 
 
     // * China 2D History System *
