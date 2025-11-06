@@ -45,7 +45,47 @@
     </div>
 
     <div id="history-modal" class="modal hidden">
+        <div class="modal-content">
+            <!-- Header with Back Arrow -->
+            <div class="history-header">
+                <button class="back-button" onclick="closeHistory()">←</button>
+                <h2>2D History</h2>
+            </div>
+            
+            <!-- Date Display -->
+            <div class="history-date" id="history-current-date">
+                DD/MM/YY
+            </div>
+            
+            <!-- Results Grid -->
+            <div class="history-results-grid">
+                <div class="time-slot" data-time="10:00 AM">
+                    <div class="time-label">10:00 AM</div>
+                    <div class="result-number">--</div>
+                </div>
+                <div class="time-slot" data-time="12:00 PM">
+                    <div class="time-label">12:00 PM</div>
+                    <div class="result-number">--</div>
+                </div>
+                <div class="time-slot" data-time="2:00 PM">
+                    <div class="time-label">2:00 PM</div>
+                    <div class="result-number">--</div>
+                </div>
+                <div class="time-slot" data-time="4:00 PM">
+                    <div class="time-label">4:00 PM</div>
+                    <div class="result-number">--</div>
+                </div>
+                <div class="time-slot" data-time="6:00 PM">
+                    <div class="time-label">6:00 PM</div>
+                    <div class="result-number">--</div>
+                </div>
+                <div class="time-slot" data-time="8:00 PM">
+                    <div class="time-label">8:00 PM</div>
+                    <div class="result-number">--</div>
+                </div>
+            </div>
         </div>
+    </div>
 
     <script src="script.js"></script>
 </body>
