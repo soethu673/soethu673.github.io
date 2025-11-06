@@ -166,3 +166,102 @@ body {
     0% { transform: translate(0, 0); }
     100% { transform: translate(-100%, 0); } 
 }
+
+*/ History Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+/* History Header */
+.history-header {
+    background: #333333;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 15px 15px 0 0;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.back-button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 5px 10px;
+    margin-right: 15px;
+}
+
+.history-header h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Date Display */
+.history-date {
+    text-align: center;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    background: #f8f8f8;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+/* Results Grid */
+.history-results-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: #e0e0e0;
+    padding: 1px;
+}
+
+.time-slot {
+    background: white;
+    padding: 20px 15px;
+    text-align: center;
+    border: 1px solid #e0e0e0;
+}
+
+.time-label {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.result-number {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    background: #f8f8f8;
+    padding: 8px 15px;
+    border-radius: 8px;
+    border: 2px solid #333;
+}
