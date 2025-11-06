@@ -203,7 +203,7 @@ app.get('/', (req, res) => {
 });
 
 // *** PORT 7703 ***
-const PORT = 7703; 
+const PORT = process.env.PORT || 7703 ; 
 
 fetchServerTime().then(() => {
     server.listen(PORT, () => {
