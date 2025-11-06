@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Show History Modal
     window.showHistory = function() {
         updateHistoryDisplay();
-        document.getElementById('history-modal').classList.add('hidden');
+        document.getElementById('history-modal').classList.remove('hidden');
     };
 
     // Close History Modal
