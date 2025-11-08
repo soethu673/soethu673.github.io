@@ -17,12 +17,12 @@ const HOLD_DURATION_MINUTES = 10;
 const API_TIME_URL = 'http://worldtimeapi.org/api/timezone/Asia/Yangon'; 
 
 const DRAW_TIMES_CONFIG = [
-    { time: "10:00", label: "10:00 AM" }, 
-    { time: "12:00", label: "12:00 PM" },
-    { time: "14:00", label: "2:00 PM" },
-    { time: "16:00", label: "4:00 PM" },
-    { time: "18:00", label: "6:00 PM" },
-    { time: "20:00", label: "8:00 PM" }
+    { time: "18:30", label: "6:30 PM" }, 
+    { time: "19:00", label: "7:00 PM" },
+    { time: "19:30", label: "7:30 PM" },
+    { time: "20:00", label: "8:00 PM" },
+    { time: "20:30", label: "8:30 PM" },
+    { time: "21:00", label: "9:00 PM" }
 ];
 
 let dailyResults = DRAW_TIMES_CONFIG.map(config => ({
