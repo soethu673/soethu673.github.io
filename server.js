@@ -56,7 +56,25 @@ async function fetchServerTime() {
 setInterval(fetchServerTime, 5000); 
 
 function getMyanmarTime() {
-    return serverTime; 
+    const now = serverTime;
+    
+    // ✅ Freeze Time Check - 10မိနစ်အတွင်း Time ရပ်ထားမယ်
+    for (let i = 0; i < dailyResults.length; i++) {
+        const draw = dailyResults[i];
+        const timeConfig = DRAW_TIMES_CONFIG[i];
+        
+        if (draw.drawnTime) {
+            const drawTimeMoment = moment.tz(`${now.format('YYYY-MM-DD')} ${timeConfig.time}`, 'YYYY-MM-DD HH:mm', MYANMAR_TIMEZONE);
+            const holdUntil = drawTimeMoment.clone().add(HOLD_DURATION_MINUTES, 'minutes');
+            
+            // 10မိနစ်အတွင်း ဆို ဂဏန်းထွက်ချိန်ကိုပဲ return ပြန်မယ်
+            if (now.isBefore(holdUntil)) {
+                return drawTimeMoment; // Freeze at exact draw time (6:30 PM, 7:00 PM, etc.)
+            }
+        }
+    }
+    
+    return now; // Normal time - 10မိနစ်ကျော်ရင် ပုံမှန်အလုပ်လုပ်
 }
 
 function resetDailyResults(myanmarTime) {
@@ -115,6 +133,7 @@ function checkDrawTimeAndPublish() {
     }
 
     let shouldAnimate = true; 
+    let isInHoldPeriod = false; // ✅ အသစ်ထည့်ပါ
 
     for (let i = 0; i < dailyResults.length; i++) {
         const draw = dailyResults[i];
@@ -133,6 +152,7 @@ function checkDrawTimeAndPublish() {
             currentValue = value;
             liveResultStatus = "hold"; 
             shouldAnimate = false;
+            isInHoldPeriod = true; // ✅ အသစ်ထည့်ပါ
         }
 
         // B. Hold Time အတွင်း ရှိနေပါက
@@ -152,6 +172,7 @@ function checkDrawTimeAndPublish() {
                 
                 liveResultStatus = "hold";
                 shouldAnimate = false;
+                isInHoldPeriod = true; // ✅ အသစ်ထည့်ပါ
             } else {
                 draw.drawnTime = null; 
             }
@@ -159,7 +180,7 @@ function checkDrawTimeAndPublish() {
     }
 
     // C. Animation ပြန်စတင်ခြင်း
-    if (shouldAnimate) {
+    if (shouldAnimate && !isInHoldPeriod) { // ✅ condition ပြင်ပါ
         const { set, value } = generateSetAndValue(); 
         currentLiveResult = "--"; 
         currentSet = set;
@@ -180,7 +201,7 @@ function broadcastResults() {
         value: currentValue,
         daily: dailyResults,
         status: liveResultStatus,  
-        timestamp: getMyanmarTime().format('DD/MM/YYYY hh:mm:ss A') 
+        timestamp: getMyanmarTime().format('DD/MM/YYYY hh:mm:ss A') // ✅ Freeze time သုံးမယ်
     };
 
     wss.clients.forEach(client => {
