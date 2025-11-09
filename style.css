@@ -141,6 +141,109 @@ body {
     color: #ffffff; /* ရလဒ်ဂဏန်းကို အဖြူရောင်ပြရန် */
 }
 
+/* --- Lucky Number Widget Styles --- */
+
+/* Lucky Number Widget */
+.lucky-number-widget {
+    position: fixed;
+    bottom: 60px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.lucky-btn {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    border: none;
+    border-radius: 25px;
+    padding: 12px 20px;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255, 165, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.lucky-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 165, 0, 0.4);
+}
+
+/* Lucky Numbers Popup */
+.lucky-popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    box-sizing: border-box;
+}
+
+.lucky-content {
+    background: white;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.lucky-header {
+    background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+    color: white;
+    padding: 15px;
+    border-radius: 15px 15px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.back-arrow {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.lucky-header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.lucky-body {
+    padding: 20px;
+}
+
+.lucky-date {
+    text-align: center;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+
+.lucky-numbers {
+    text-align: center;
+}
+
+.number-row {
+    font-size: 18px;
+    font-weight: bold;
+    color: #FF6B6B;
+    margin: 10px 0;
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
 /* --- Ticker Text Style --- */
 
 .footer-ticker {
@@ -193,6 +296,10 @@ body {
     z-index: 1000;
     padding: 15px;
     box-sizing: border-box;
+}
+
+.modal.hidden {
+    display: none;
 }
 
 .modal-content {
@@ -304,5 +411,20 @@ body {
     
     .history-header h2 {
         font-size: 16px;
+    }
+    
+    .lucky-btn {
+        padding: 10px 16px;
+        font-size: 14px;
+        bottom: 50px;
+    }
+    
+    .lucky-content {
+        width: 95%;
+    }
+    
+    .number-row {
+        font-size: 16px;
+        padding: 6px;
     }
 }
