@@ -189,50 +189,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // *** Lucky Numbers Functions ***
-    window.openLuckyNumbers = function() {
-        // Update with current date and time
-        const now = new Date();
-        const options = { 
-            month: 'short', 
-            day: 'numeric', 
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        };
-        
-        document.getElementById('luckyDate').textContent = 
-            `Date: ${now.toLocaleDateString('en-US', options)} (${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')})`;
-        
-        // You can customize these numbers - they can be dynamic
-        document.getElementById('luckyRow1').textContent = generateLuckyNumbers();
-        document.getElementById('luckyRow2').textContent = generateLuckyNumbers();
-        document.getElementById('luckyRow3').textContent = generateSingleNumber();
-        
-        document.getElementById('luckyPopup').style.display = 'flex';
-    };
-
-    window.closeLuckyNumbers = function() {
-        document.getElementById('luckyPopup').style.display = 'none';
-    };
-
-    // Generate random lucky numbers (you can customize this logic)
-    function generateLuckyNumbers() {
-        const numbers = [];
-        for (let i = 0; i < 4; i++) {
-            numbers.push(Math.floor(Math.random() * 90 + 10)); // 10-99
-        }
-        // Add R to last number sometimes
-        if (Math.random() > 0.5) {
-            numbers[3] = numbers[3] + 'R';
-        }
-        return numbers.join('-');
-    }
-
-    function generateSingleNumber() {
-        return Math.floor(Math.random() * 90 + 10).toString(); // 10-99
-    }
-
     // *** Global Functions ***
     window.showHistory = function() {
         const modal = document.getElementById('history-modal');
@@ -258,16 +214,6 @@ document.addEventListener('DOMContentLoaded', () => {
         historyModal.addEventListener('click', function(e) {
             if (e.target === this) {
                 closeHistory();
-            }
-        });
-    }
-
-    // Close lucky popup when clicking outside
-    const luckyPopup = document.getElementById('luckyPopup');
-    if (luckyPopup) {
-        luckyPopup.addEventListener('click', function(e) {
-            if (e.target.id === 'luckyPopup') {
-                closeLuckyNumbers();
             }
         });
     }
