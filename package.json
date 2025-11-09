@@ -5,10 +5,12 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
+    "build": "npm install --omit=dev"
   },
   "dependencies": {
     "express": "^4.19.2",
     "moment-timezone": "^0.5.45",
+    "mongodb":"^5.8.0",
     "ws": "^8.16.0",
     "axios": "^1.7.2"
   }
