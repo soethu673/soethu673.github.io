@@ -6,24 +6,27 @@ body {
     min-height: 100vh; 
     margin: 0;
     padding: 0;
-    background-color: #f8f8f8; /* အဖြူနီးပါး နောက်ခံ */
+    background-color: #f0f0f0; /* Light Grey (ပြင်ဆင်ချက်: Main background ကို Grey ဖြင့်စတင်) */
+    box-sizing: border-box; /* Padding, border တို့ကို width/height ထဲမှာ ထည့်တွက်ရန် */
 }
 
 .container {
-    width: 100%; /* Full Screen Width */
+    width: 100%; 
+    max-width: 480px; /* Mobile View အတွက် အများဆုံး width သတ်မှတ် */
     background-color: white;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    min-height: 100vh;
 }
 
-/* Header/Title Bar (Black) */
+/* Header/Title Bar */
 .header-title {
     display: flex;
-    justify-content : flex-start;
+    justify-content: space-between; /* Icon Group အတွက် ညာဘက်မှာ နေရာချရန် */
     align-items: center;
-    background-color: #333333; /* ခေါင်းစီး အမဲရောင် */
+    background-color: #4a4a4a; /* Dark Grey ခေါင်းစီး (Grey Theme အသစ်) */
     color: white;
     padding: 10px 15px;
-    position : relative;
+    position: relative;
 }
 
 .header-title h1 {
@@ -39,9 +42,20 @@ body {
     text-decoration: none;
 }
 
-.icon-group .icon {
-    font-size: 1.2rem;
-    margin-left: 10px;
+/* History Icon Group (ညာဘက်အပေါ်ထောင့်နား) */
+.icon-group {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+.icon-group .header-icon {
+    background: none;
+    border: none;
+    color: #fff; 
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 5px;
 }
 
 /* Live Result Box */
@@ -49,10 +63,10 @@ body {
     text-align: center;
     padding: 20px 0;
     background-color: #ffffff; 
-    border-bottom: 5px solid #333333;
+    border-bottom: 5px solid #4a4a4a; /* Dark Grey Border */
 }
 
-/* SET/VALUE Info */
+/* SET/VALUE Info - မူရင်းက မသုံးထားသော်လည်း Style ကို သိမ်းထားပါသည် */
 .set-value-info {
     font-size: 1.1rem;
     color: #555;
@@ -71,12 +85,12 @@ body {
 .live-number {
     font-size: 4.5rem;
     font-weight: 700;
-    color: #000000; /* အမဲရောင် */
+    color: #1a1a1a; /* Dark Text */
     display: inline-block;
     margin: 10px 0;
 }
 
-/* Smooth Fade In/Out Animation for 2D Number */
+/* Animation */
 .blinking {
     animation: fadeInOut 3s ease-in-out infinite;
 }
@@ -98,17 +112,17 @@ body {
 }
 
 .checkmark {
-    color: #27ae60; /* အစိမ်းရောင်အမှန်ခြစ် */
+    color: #27ae60; 
     font-size: 1.1rem;
     font-weight: bold;
     margin-right: 5px;
 }
 
 .hidden {
-    visibility: hidden; 
+    display: none !important; /* visibility: hidden အစား display: none ကို သုံးပါ */
 }
 
-/* Result Grid (6 Boxes - Black) */
+/* Result Grid (6 Boxes - Grey Theme) */
 .result-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr); 
@@ -118,39 +132,42 @@ body {
 }
 
 .result-box {
-    background-color: #333333; /* အမဲရောင် */
-    color: white;
+    background-color: #e0e0e0; /* Light Grey (Grey Theme) */
+    color: #1a1a1a; /* Dark Text */
     border-radius: 8px;
     padding: 15px;
     text-align: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #c0c0c0;
 }
 
 .box-time {
     font-size: 0.9rem;
     font-weight: 500;
     margin: 0 0 5px 0;
+    color: #555;
 }
 
 .box-result {
     font-size: 2.2rem;
     font-weight: 800;
     margin: 0;
-    background-color: rgba(255, 255, 255, 0.1); 
+    background-color: #ffffff; /* ရလဒ်ဂဏန်း နောက်ခံကို အဖြူ သို့မဟုတ် အနီးစပ်ဆုံး အရောင် */
     padding: 5px 0;
     border-radius: 4px;
-    color: #ffffff; /* ရလဒ်ဂဏန်းကို အဖြူရောင်ပြရန် */
+    color: #333333; /* ရလဒ်ဂဏန်းကို Dark Grey ပြရန် */
 }
 
 /* --- Ticker Text Style --- */
 
 .footer-ticker {
-    background-color: #1a1a1a; 
+    background-color: #333333; /* Dark Grey */
     color: white;
     overflow: hidden;
     position: fixed;
     bottom: 0;
     width: 100%; 
+    max-width: 480px; /* Container width နဲ့ ကိုက်ညီရန် */
     height: 30px;
     line-height: 30px;
     white-space: nowrap;
@@ -168,142 +185,129 @@ body {
     100% { transform: translate(-100%, 0); } 
 }
 
-/* Footer Ticker ထဲက History Link Style */
 .history-link {
-    color: #ffffff;
-    background: #333333;
-    padding: 2px 8px;
-    border-radius: 4px;
-    margin-left: 10px;
-    cursor: pointer;
-    font-weight: bold;
-    border: 1px solid white;
+    /* ဒီ link style က မူရင်း code မှာ Footer ထဲမှာရှိလို့ ဖြုတ်လိုက်ပါမယ် */
 }
 
-/* History Modal အသစ် */
-.modal {
+/* ========================================================== */
+/* *** HISTORY PAGE STYLES (Full Page Overlay - Grey Theme) *** */
+/* ========================================================== */
+
+/* .modal အစား .history-overlay ကို သုံးပါမည် */
+.history-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.95);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    padding: 15px;
-    box-sizing: border-box;
+    max-width: 480px; /* Container width နဲ့ ကိုက်ညီရန် */
+    background-color: #f5f5f5; /* Light Grey Background */
+    z-index: 100;
+    overflow-y: auto; /* Scrollable ဖြစ်ဖို့ */
 }
 
-.modal-content {
-    background: white;
-    border-radius: 15px;
-    width: 95%;
-    max-width: 400px;
-    max-height: 85vh;
-    overflow-y: auto;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    border: 2px solid #333;
-}
-
-/* History Header - Black Background */
+/* History Header */
 .history-header {
-    background: #333333;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    max-width: 480px;
+    background: #4a4a4a; /* Dark Grey Header */
     color: white;
-    padding: 15px 20px;
-    border-radius: 13px 13px 0 0;
+    padding: 10px 15px;
+    height: 50px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 101; 
     display: flex;
     align-items: center;
-    position: relative;
-    border-bottom: 2px solid #333;
 }
 
-.back-button {
+.history-header .back-button {
     background: none;
     border: none;
     color: white;
-    font-size: 24px;
+    font-size: 28px;
     cursor: pointer;
-    padding: 5px 15px 5px 5px;
-    margin-right: 10px;
+    margin-right: 15px;
+    padding: 0;
 }
 
-.history-header h2 {
+.history-header .history-title-text { /* history-header h2 အစား ပြောင်းလဲ */
     margin: 0;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
     color: white;
 }
 
-/* Date Display - White Background */
+/* Scrollable Results Area */
+.history-results-container {
+    padding-top: 60px; /* Header အတွက် နေရာချန်ထားခြင်း */
+    padding-bottom: 20px;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* နေ့စွဲအလိုက် အုပ်စု (Daily Group) */
+.daily-result-group {
+    background-color: #ffffff; /* နေ့စွဲတစ်စုချင်းစီရဲ့ နောက်ခံကို အဖြူ */
+    margin: 10px 15px;
+    padding: 15px 0;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
 .history-date {
     text-align: center;
-    padding: 15px;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: bold;
-    color: #333;
-    background: #ffffff;
+    color: #333; /* Darker Text */
+    padding-bottom: 10px;
+    margin-bottom: 10px;
     border-bottom: 1px solid #ddd;
 }
 
-/* Results Grid - Black & White Theme */
+/* 2D Result ၆ ကွက် Grid Style */
 .history-results-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1px;
-    background: #333;
-    padding: 1px;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 0 15px;
 }
 
-.time-slot {
-    background: white;
-    padding: 20px 15px;
+.result-box-item {
+    background-color: #e0e0e0; /* Light Grey Result Boxes */
+    padding: 10px;
+    border-radius: 5px;
     text-align: center;
-    border: 1px solid #333;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.time-label {
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 10px;
-    font-weight: 500;
+.result-box-item .box-time {
+    font-size: 13px;
+    color: #555;
+    margin: 0;
 }
 
-.result-number {
+.result-box-item .box-result {
     font-size: 24px;
-    font-weight: bold;
-    color: #333;
-    background: #f8f8f8;
-    padding: 10px 15px;
-    border-radius: 8px;
-    border: 2px solid #333;
-    min-width: 60px;
-    display: inline-block;
+    font-weight: 800;
+    color: #333; /* Darker Grey Number */
+    margin: 5px 0 0;
+}
+
+/* အင်္ဂါနေ့ ပိတ်ထားကြောင်း ဖော်ပြမည့် ဒီဇိုင်း */
+.closed-day-message {
+    text-align: center;
+    padding: 10px;
+    color: #777;
+    font-style: italic;
+    font-size: 16px;
 }
 
 /* Mobile Responsive */
 @media screen and (max-width: 480px) {
-    .modal-content {
-        width: 98%;
-        max-height: 90vh;
-    }
-    
-    .time-slot {
-        padding: 15px 10px;
-    }
-    
-    .result-number {
-        font-size: 20px;
-        padding: 8px 12px;
-        min-width: 50px;
-    }
-    
-    .history-header {
-        padding: 12px 15px;
-    }
-    
-    .history-header h2 {
-        font-size: 16px;
+    .container, .footer-ticker, .history-overlay, .history-header {
+        max-width: 100%;
     }
 }
