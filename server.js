@@ -19,7 +19,7 @@ app.get('/health', (req, res) => {
         liveResult: currentLiveResult,
         message: 'China 2D Server is running normally'
     });
-
+});
 // *** 1. Configuration & Data Stores ***
 const MYANMAR_TIMEZONE = 'Asia/Yangon'; 
 const HOLD_DURATION_MINUTES = 10; 
