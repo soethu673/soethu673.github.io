@@ -20,6 +20,7 @@ app.get('/health', (req, res) => {
         message: 'China 2D Server is running normally'
     });
 });
+
 // *** 1. Configuration & Data Stores ***
 const MYANMAR_TIMEZONE = 'Asia/Yangon'; 
 const HOLD_DURATION_MINUTES = 10; 
@@ -55,10 +56,7 @@ async function fetchServerTime() {
         const response = await axios.get(API_TIME_URL);
         const datetime = response.data.datetime;
         serverTime = moment(datetime).tz(MYANMAR_TIMEZONE);
-        // console.log(`[Time Sync] Server Time: ${serverTime.format('YYYY-MM-DD HH:mm:ss')}`); // Log ကို ဖျက်ထားသည်
     } catch (error) {
-        // Time Sync Error ပေါ်ရင် system time ကို သုံးမည်
-        // console.error("[Time Sync] Error fetching API time. Using system time.", error.message); // Log ကို ဖျက်ထားသည်
         serverTime = moment().tz(MYANMAR_TIMEZONE);
     }
 }
@@ -67,7 +65,7 @@ setInterval(fetchServerTime, 1000);
 function getMyanmarTime() {
     const now = serverTime;
     
-    // ✅ Freeze Time Check - 10မိနစ်အတွင်း Time ရပ်ထားမယ်
+    // Freeze Time Check - 10မိနစ်အတွင်း Time ရပ်ထားမယ်
     for (let i = 0; i < dailyResults.length; i++) {
         const draw = dailyResults[i];
         const timeConfig = DRAW_TIMES_CONFIG[i];
@@ -78,7 +76,7 @@ function getMyanmarTime() {
             
             // 10မိနစ်အတွင်း ဆို ဂဏန်းထွက်ချိန်ကိုပဲ return ပြန်မယ်
             if (now.isBefore(holdUntil)) {
-                return drawTimeMoment; // Freeze at exact draw time (6:30 PM, 7:00 PM, etc.)
+                return drawTimeMoment; 
             }
         }
     }
@@ -87,6 +85,7 @@ function getMyanmarTime() {
 }
 
 function resetDailyResults(myanmarTime) {
+    // နေ့သစ် (12:05 AM) မှာ Result တွေ ပြန်လည်သတ်မှတ်ခြင်း
     if (myanmarTime.hour() === 0 && myanmarTime.minute() === 5) {
         dailyResults = DRAW_TIMES_CONFIG.map(config => ({
             time: config.time,
@@ -101,7 +100,7 @@ function resetDailyResults(myanmarTime) {
     }
 }
 
-// ** SET/VALUE ဂဏန်းများကို Format အသစ်ဖြင့် ထုတ်လုပ်ခြင်း **
+// SET/VALUE ဂဏန်းများကို Format အသစ်ဖြင့် ထုတ်လုပ်ခြင်း
 function generateSetAndValue() {
     // SET (ဒသမအပါ ၆ လုံး) - ဥပမာ: 123.456
     const setNum = Math.random() * 999.999;
@@ -142,7 +141,7 @@ function checkDrawTimeAndPublish() {
     }
 
     let shouldAnimate = true; 
-    let isInHoldPeriod = false; // ✅ အသစ်ထည့်ပါ
+    let isInHoldPeriod = false; 
 
     for (let i = 0; i < dailyResults.length; i++) {
         const draw = dailyResults[i];
@@ -161,7 +160,7 @@ function checkDrawTimeAndPublish() {
             currentValue = value;
             liveResultStatus = "hold"; 
             shouldAnimate = false;
-            isInHoldPeriod = true; // ✅ အသစ်ထည့်ပါ
+            isInHoldPeriod = true; 
         }
 
         // B. Hold Time အတွင်း ရှိနေပါက
@@ -172,7 +171,6 @@ function checkDrawTimeAndPublish() {
                 currentLiveResult = draw.result; 
                 
                 // Hold အချိန်မှာ SET/VALUE ကို ထွက်ဂဏန်းနဲ့ ကိုက်အောင် ပြန်ညှိခြင်း (Logic သက်သက်)
-                // ဥပမာ: 2D result 56 ထွက်ရင်၊ SET/VALUE ကို 5 နဲ့ 6 အဆုံးသတ်တဲ့ ဂဏန်းအဖြစ် Random ထုတ်ပါ
                 const heldSetNum = Math.random() * 999.990; 
                 const heldValueNum = Math.random() * 9999.9990;
                 
@@ -181,7 +179,7 @@ function checkDrawTimeAndPublish() {
                 
                 liveResultStatus = "hold";
                 shouldAnimate = false;
-                isInHoldPeriod = true; // ✅ အသစ်ထည့်ပါ
+                isInHoldPeriod = true; 
             } else {
                 draw.drawnTime = null; 
             }
@@ -189,7 +187,7 @@ function checkDrawTimeAndPublish() {
     }
 
     // C. Animation ပြန်စတင်ခြင်း
-    if (shouldAnimate && !isInHoldPeriod) { // ✅ condition ပြင်ပါ
+    if (shouldAnimate && !isInHoldPeriod) { 
         const { set, value } = generateSetAndValue(); 
         currentLiveResult = "--"; 
         currentSet = set;
@@ -210,7 +208,7 @@ function broadcastResults() {
         value: currentValue,
         daily: dailyResults,
         status: liveResultStatus,  
-        timestamp: getMyanmarTime().format('DD/MM/YYYY hh:mm:ss A') // ✅ Freeze time သုံးမယ်
+        timestamp: getMyanmarTime().format('DD/MM/YYYY hh:mm:ss A') 
     };
 
     wss.clients.forEach(client => {
@@ -221,15 +219,39 @@ function broadcastResults() {
 }
 
 wss.on('connection', ws => {
-    // console.log('Client connected'); // Log ကို ဖျက်ထားသည်
     broadcastResults(); 
 });
+
+// -------------------------------------------------------------
+// *** 3. History API Endpoint အသစ် (ဒီနေ့ Result သီးသန့်) ***
+// /api/2d/history ကို ခေါ်တဲ့အခါ ဒီနေ့ရဲ့ Result ၆ ကွက်ကိုသာ ပို့ပေးပါမည်။
+app.get('/api/2d/history', (req, res) => {
+    const today = getMyanmarTime();
+    
+    // ဒီနေ့အတွက် ထွက်ရှိပြီးသား Result များကို ဆွဲယူ
+    const todayResults = dailyResults.map(d => ({
+        time: d.label,
+        number: d.result 
+    }));
+    
+    // ဒီနေ့ရဲ့ နေ့စွဲ၊ ပိတ်/မပိတ် အချက်အလက်များကို ထည့်သွင်း
+    const todayEntry = {
+        date: today.format('DD/MM/YYYY'),
+        dayOfWeek: today.format('dddd'),
+        isClosed: today.day() === 2, // အင်္ဂါနေ့ (Tuesday) ဆိုရင် true
+        results: todayResults
+    };
+    
+    res.status(200).json(todayEntry);
+});
+// -------------------------------------------------------------
+
 
 app.use(express.static(path.join(__dirname, '.')));
 
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html')); // ✅ current directory
+    res.sendFile(path.join(__dirname, 'index.html')); 
 });
 
 // *** PORT 7703 ***
