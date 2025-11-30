@@ -5,16 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CHINA 2D Live Result</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
 
-    <div class="container">
+    <div id="live-page-content" class="container">
         <div class="header-title">
             <a href="#" class="back-link" onclick="handleExit()">←</a> 
-            <h1>CHINA 2D 🇨🇳</h1>
+            <h1 id="main-header-text">CHINA 2D 🇨🇳</h1>
+            
             <div class="icon-group">
-            </span>
-              </div>  
+                <button id="history-icon" class="header-icon">
+                    <i class="fas fa-history"></i> </button>
+            </div>  
         </div>
         
         <div class="live-result-box">
@@ -44,46 +47,16 @@
             အင်္ဂါနေ့တိုင်း CHINA 2D ပိတ်ပါသည်။  We are CLOSED every Tuesday! </div>
     </div>
 
-    <div id="history-modal" class="modal hidden">
-        <div class="modal-content">
-            <!-- Header with Back Arrow and Title-->
-            <div class="history-header">
-                <button class="back-button" onclick="closeHistory()">←</button>
-                <h2>2D History</h2>
-            </div>
-            
-            <!-- Date Display -->
-            <div class="history-date" id="history-current-date">
-                DD/MM/YY
-            </div>
-            
-            <!-- Results Grid - Black & White Theme -->
-            <div class="history-results-grid">
-                <div class="time-slot" data-time="4:00 PM">
-                    <div class="time-label">4:00 PM</div>
-                    <div class="result-number">--</div>
-                </div>
-                <div class="time-slot" data-time="4:30 PM">
-                    <div class="time-label">4:30 PM</div>
-                    <div class="result-number">--</div>
-                </div>
-                <div class="time-slot" data-time="5:00 PM">
-                    <div class="time-label">5:00 PM</div>
-                    <div class="result-number">--</div>
-                </div>
-                <div class="time-slot" data-time="5:30 PM">
-                    <div class="time-label">5:30 PM</div>
-                    <div class="result-number">--</div>
-                </div>
-                <div class="time-slot" data-time="6:00 PM">
-                    <div class="time-label">6:00 PM</div>
-                    <div class="result-number">--</div>
-                </div>
-                <div class="time-slot" data-time="6:30 PM">
-                    <div class="time-label">6:30 PM</div>
-                    <div class="result-number">--</div>
-                </div>
-            </div>
+    <div id="history-page" class="history-overlay hidden">
+        <div class="history-header">
+            <button id="history-back-btn" class="back-button">←</button>
+            <h2 class="history-title-text">2D Result</h2>
+        </div>
+        
+        <div id="history-results-container" class="history-results-container">
+            <p style="text-align: center; color: #555; margin-top: 50px;">
+                ... Results loading ...
+            </p>
         </div>
     </div>
 
