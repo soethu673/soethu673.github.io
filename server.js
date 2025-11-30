@@ -200,8 +200,8 @@ function checkDrawTimeAndPublish() {
     broadcastResults();
 }
 
-// *** 5 စက္ကန့်တိုင်း စစ်ဆေးပါ (Animation Interval) ***
-setInterval(checkDrawTimeAndPublish, 5000); 
+// *** 10 စက္ကန့်တိုင်း စစ်ဆေးပါ (Animation Interval) ***
+setInterval(checkDrawTimeAndPublish, 10000); 
 
 function broadcastResults() {
     const dataToSend = {
