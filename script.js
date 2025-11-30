@@ -1,8 +1,7 @@
-// public/script.js (With History Feature)
+// public/script.js (Cache Data ဖျက်ထုတ်ပြီး၊ History Feature ထည့်သွင်းထားသော Code)
 
 document.addEventListener('DOMContentLoaded', () => {
     // *** Configuration ***
-    // WS_URL ကို မူရင်းအတိုင်းထားပြီး API_URL ကို local server မှ ခေါ်ရန် ပြင်ဆင်ပါမည်။
     const WS_URL = "wss://china-2d-live.onrender.com";
     // API URL ကို ဒေသတွင်း server မှ ခေါ်ယူရန်
     const API_URL = "/api/2d/history"; 
@@ -24,59 +23,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const historyResultsContainer = document.getElementById('history-results-container'); 
     
     let animationTimer = null; 
-    let currentResults = JSON.parse(localStorage.getItem('current_results')) || {};
-
-    // *** Utility Functions (Animation, Save, Cache, etc.) - မူရင်းအတိုင်းထားရှိပါသည် ***
     
+    // Cache Data စနစ်ကို ဖျက်ထုတ်လိုက်ပါပြီ
+    // let currentResults = JSON.parse(localStorage.getItem('current_results')) || {}; 
+    
+    // *** Utility Functions (Cache & Save Functions များကို ဖျက်ထုတ်ပါပြီ) ***
+    
+    /*
+    // saveCurrentResults function ကို ဖျက်ပါပြီ
     function saveCurrentResults(data) {
-        // ... (မူရင်း saveCurrentResults function)
-        try {
-            if (data.daily && data.daily.length > 0) {
-                data.daily.forEach((draw) => {
-                    if (draw.result && draw.result !== "--") {
-                        currentResults[draw.label] = draw.result.toString().padStart(2, '0');
-                    }
-                });
-                
-                localStorage.setItem('current_results', JSON.stringify(currentResults));
-                console.log('💾 Results saved for sleep protection');
-            }
-        } catch (e) {
-            console.error('Error saving results:', e);
-        }
+        // ... (Logic removed)
     }
 
+    // showCachedResults function ကို ဖျက်ပါပြီ
     function showCachedResults() {
-        // ... (မူရင်း showCachedResults function)
-        console.log('🔌 WebSocket failed - Showing cached results');
-        
-        if (Object.keys(currentResults).length > 0) {
-            resultBoxes.forEach((box) => {
-                if (box) {
-                    const timeElement = box.querySelector('.box-time');
-                    const resultElement = box.querySelector('.box-result');
-                    
-                    if (timeElement && resultElement) {
-                        const timeLabel = timeElement.textContent;
-                        const cachedResult = currentResults[timeLabel];
-                        
-                        if (cachedResult) {
-                            resultElement.textContent = cachedResult;
-                        }
-                    }
-                }
-            });
-            
-            if (updatedTimeElement) {
-                updatedTimeElement.textContent = "Using cached data - " + new Date().toLocaleString();
-            }
-        }
+        // ... (Logic removed)
     }
+    */
 
     // *** WebSocket Connection ***
     const socket = new WebSocket(WS_URL);
 
-    // ... (socket.onopen, socket.onmessage, socket.onclose, socket.onerror functions များ မူရင်းအတိုင်း)
     socket.onopen = () => {
         console.log('✅ WebSocket Connected - Using LIVE data');
         if (updatedTimeElement) {
@@ -142,23 +109,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // *** ဂဏန်းထွက်ရင် သိမ်းထားမယ် (Render Sleep အတွက်) ***
-            saveCurrentResults(data);
+            // *** Cache Data သိမ်းဆည်းသည့်အပိုင်းကို ဖျက်ထုတ်ပြီး ဖြစ်သည်။ ***
 
         } catch (e) {
             console.error("Error processing data:", e);
         }
     };
-    
-    socket.onclose = () => {
-        console.log('🔌 WebSocket Closed - Render Sleep Detected');
-        showCachedResults();
-    };
 
-    socket.onerror = (error) => {
-        console.log('❌ WebSocket Error - Render Sleep Detected');
-        showCachedResults();
-    };
+    // *** WebSocket FAILED / CLOSED ဖြစ်ပါက Connection Error Message ပြသမည် ***
+    function handleConnectionError() {
+        console.log('🔌 WebSocket Error/Closed - Showing Connection Error');
+        if (updatedTimeElement) {
+            updatedTimeElement.textContent = "Connection Lost. Please Refresh.";
+        }
+        stopAnimation("--", "--", "--"); // Animation ရပ်ပြီး 2D ကို "--" ပြ
+        if (checkmarkElement) {
+            checkmarkElement.classList.remove('hidden'); 
+            checkmarkElement.textContent = "❌"; 
+        }
+        // Daily Results များကိုလည်း ရှင်းထုတ်ရန် စဉ်းစားနိုင်ပါသည်။
+        resultBoxes.forEach(box => {
+            const resultElement = box.querySelector('.box-result');
+            if (resultElement) resultElement.textContent = "--";
+        });
+    }
+
+    socket.onclose = handleConnectionError;
+    socket.onerror = handleConnectionError;
 
     // *** Utility Functions ***
     function updateAnimationDigits(set, value) {
@@ -192,10 +169,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // ==========================================================
-    // *** HISTORY FEATURE LOGIC (အဓိက အပြောင်းအလဲ) ***
+    // *** HISTORY FEATURE LOGIC ***
     // ==========================================================
 
-    // 1. History Page ကို API မှ Data ဖြင့် ပြသခြင်း
     async function fetchAndRenderHistory() {
         try {
             // Server.js မှ /api/2d/history ကို ခေါ်ယူခြင်း
@@ -203,16 +179,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
+            // History API က ဒီနေ့ရဲ့ Result တစ်ခုတည်းကို Object အနေနဲ့ ပြန်ပို့ပေးပါမည်။
             const data = await response.json(); 
             
-            // Container ကို ရှင်းထုတ်ခြင်း
             historyResultsContainer.innerHTML = '';
             
-            // History Group တစ်ခု ဖန်တီးခြင်း (ဒီနေ့အတွက်သာ)
             const dailyGroup = document.createElement('div');
             dailyGroup.classList.add('daily-result-group');
 
-            // နေ့စွဲ (Date/Month/Year) ကို အလယ်တည့်တည့်မှာ ပြသခြင်း
             const dateElement = document.createElement('div');
             dateElement.classList.add('history-date');
             dateElement.textContent = data.date; 
@@ -247,40 +221,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 dailyGroup.appendChild(grid);
             }
 
-            // History Page ပေါ်တွင် ပြသခြင်း
             historyResultsContainer.appendChild(dailyGroup);
 
         } catch (error) {
             console.error('Failed to fetch 2D History:', error);
-            historyResultsContainer.innerHTML = '<p style="text-align: center; color: red;">Result History Data ဆွဲယူရာတွင် အမှားပေါ်ခဲ့သည်။</p>';
+            historyResultsContainer.innerHTML = '<p style="text-align: center; color: red; margin-top: 50px;">Result History Data ဆွဲယူရာတွင် အမှားပေါ်ခဲ့သည်။</p>';
         }
     }
     
     // 2. Page ပြောင်းလဲမှု စီမံခန့်ခွဲခြင်း
     
-    historyIcon.addEventListener('click', () => {
-        // History Page ကို ဖွင့်ပါ
-        livePage.classList.add('hidden');
-        historyPage.classList.remove('hidden');
-        
-        // Data ကို ချက်ချင်း ဆွဲယူပြီး ပြသပါ
-        fetchAndRenderHistory();
-    });
+    if (historyIcon) {
+        historyIcon.addEventListener('click', () => {
+            livePage.classList.add('hidden');
+            historyPage.classList.remove('hidden');
+            fetchAndRenderHistory();
+        });
+    }
 
-    historyBackBtn.addEventListener('click', () => {
-        // Live Page ကို ပြန်ပြောင်းပါ
-        historyPage.classList.add('hidden');
-        livePage.classList.remove('hidden');
-    });
+    if (historyBackBtn) {
+        historyBackBtn.addEventListener('click', () => {
+            historyPage.classList.add('hidden');
+            livePage.classList.remove('hidden');
+        });
+    }
 
-    // 3. Global Functions (မူရင်း code မှ Modal Function များကို ဖယ်ရှား/ပြောင်းလဲ)
-    
-    // History Modal မဟုတ်ဘဲ Page ပြောင်းထားလို့ ဒီ function တွေ မလိုတော့ပါ။
-    /*
-    window.showHistory = function() { ... };
-    window.closeHistory = function() { ... };
-    */
-
+    // 3. Global Functions
     window.handleExit = function() {
         history.back(); 
     };
