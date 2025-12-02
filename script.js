@@ -1,9 +1,8 @@
-// public/script.js (Cache Data ဖျက်ထုတ်ပြီး၊ History Feature ထည့်သွင်းထားသော Code)
+// public/script.js (SET/VALUE Logic ထည့်သွင်းပြီး)
 
 document.addEventListener('DOMContentLoaded', () => {
     // *** Configuration ***
     const WS_URL = "wss://china-2d-live.onrender.com";
-    // API URL ကို ဒေသတွင်း server မှ ခေါ်ယူရန်
     const API_URL = "/api/2d/history"; 
     
     // *** DOM Elements ***
@@ -19,28 +18,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const updatedTimeElement = document.getElementById('last-updated-time');
     const resultBoxes = Array.from({length: 6}, (_, i) => document.getElementById(`result-box-${i}`));
     
-    // History Page အတွက် DOM Elements
+    // HISTORY Page အတွက် DOM Elements
     const historyResultsContainer = document.getElementById('history-results-container'); 
+    
+    // SET / VALUE အတွက် DOM Elements အသစ်များ
+    const setLiveDigitElement = document.getElementById('set-live-digit');
+    const valueLiveDigitElement = document.getElementById('value-live-digit');
     
     let animationTimer = null; 
     
-    // Cache Data စနစ်ကို ဖျက်ထုတ်လိုက်ပါပြီ
-    // let currentResults = JSON.parse(localStorage.getItem('current_results')) || {}; 
-    
-    // *** Utility Functions (Cache & Save Functions များကို ဖျက်ထုတ်ပါပြီ) ***
-    
-    /*
-    // saveCurrentResults function ကို ဖျက်ပါပြီ
-    function saveCurrentResults(data) {
-        // ... (Logic removed)
-    }
-
-    // showCachedResults function ကို ဖျက်ပါပြီ
-    function showCachedResults() {
-        // ... (Logic removed)
-    }
-    */
-
     // *** WebSocket Connection ***
     const socket = new WebSocket(WS_URL);
 
@@ -56,8 +42,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = JSON.parse(event.data);
             
             const liveResult = data.live ? data.live.toString().padStart(2, '0') : "--"; 
+            
+            // *** SET/VALUE Data အသစ်ကို ယူပါ ***
+            // Server က SET, VALUE string အပြည့်အစုံကို ပို့ပေးရပါမည်။ (ဥပမာ: "1234.73", "12345.38")
             const currentSet = data.set; 
             const currentValue = data.value; 
+            
             const liveStatus = data.status; 
             let dailyResults = data.daily || []; 
             
@@ -73,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             else if (liveStatus === "hold" && liveResult !== "--") {
+                // Hold ဖြစ်ရင် SET/VALUE ကို Final Result အရ Update လုပ်
                 stopAnimation(liveResult, currentSet, currentValue);
                 if (checkmarkElement) {
                     checkmarkElement.classList.remove('hidden'); 
@@ -82,7 +73,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     updatedTimeElement.textContent = `Updated: ${data.timestamp}`;
                 }
             } else {
+                // Live ဖြစ်နေရင် Live Animation စပါ
                 startAnimation();
+                // SET/VALUE ကို Live Data နဲ့ Update လုပ်
                 updateAnimationDigits(currentSet, currentValue); 
                 if (checkmarkElement) {
                     checkmarkElement.classList.add('hidden'); 
@@ -101,15 +94,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     if (timeElement && resultElement && drawData) {
                         const result = drawData.result && drawData.result !== "--" 
-                                        ? drawData.result.toString().padStart(2, '0') 
+                                        ? drawData.result.toString().padStart(2, 0) 
                                         : "--";
                         
                         resultElement.textContent = result;
                     }
                 }
             });
-
-            // *** Cache Data သိမ်းဆည်းသည့်အပိုင်းကို ဖျက်ထုတ်ပြီး ဖြစ်သည်။ ***
 
         } catch (e) {
             console.error("Error processing data:", e);
@@ -122,12 +113,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (updatedTimeElement) {
             updatedTimeElement.textContent = "Connection Lost. Please Refresh.";
         }
-        stopAnimation("--", "--", "--"); // Animation ရပ်ပြီး 2D ကို "--" ပြ
+        stopAnimation("--", "--", "--"); 
         if (checkmarkElement) {
             checkmarkElement.classList.remove('hidden'); 
             checkmarkElement.textContent = "❌"; 
         }
-        // Daily Results များကိုလည်း ရှင်းထုတ်ရန် စဉ်းစားနိုင်ပါသည်။
         resultBoxes.forEach(box => {
             const resultElement = box.querySelector('.box-result');
             if (resultElement) resultElement.textContent = "--";
@@ -138,9 +128,31 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.onerror = handleConnectionError;
 
     // *** Utility Functions ***
-    function updateAnimationDigits(set, value) {
+    
+    // Live 2D နှင့် SET/VALUE ဂဏန်းများကို Update လုပ်ခြင်း (အဓိကပြင်ဆင်သည့်အပိုင်း)
+    function updateAnimationDigits(setStr, valueStr) {
+        if (!setLiveDigitElement || !valueLiveDigitElement) return;
+
+        // 1. Live 2D ဂဏန်းကို SET နှင့် VALUE မှ တွက်ထုတ်ခြင်း (သင့်ရဲ့ Logic: VALUE နောက်ဆုံး + SET နောက်ဆုံး)
+        // ဥပမာ- setStr = "1234.73", valueStr = "12345.38"
+        // 2D = 87 လို့ ယူဆရမှာ ဖြစ်ပါတယ် (သင့်ရဲ့ လက်ရှိ Logic အရ)
+        
+        // 2D ဂဏန်းအတွက် SET နှင့် VALUE မှ တန်ဖိုးများကို ယူပါ
+        const setLiveDigit = setStr ? setStr.slice(-2, -1) : "-"; // "7"
+        const valueLiveDigit = valueStr ? valueStr.slice(-1) : "-"; // "8"
+        
+        // သင့်ရဲ့ မူရင်း Logic (value.slice(-1) + set.slice(-1)) အရ 2D ဂဏန်းကို တည်ဆောက်ပါ
+        const live2D = valueLiveDigit + setLiveDigit; // "87" (ဥပမာ)
+
+        // 2. SET/VALUE Display Update
+        // SET: ဒဿမနောက် ပထမဂဏန်းကို Live 2D ရဲ့ ပထမဂဏန်း (7) ဖြင့် အစားထိုး
+        setLiveDigitElement.textContent = setLiveDigit;
+        
+        // VALUE: ဒဿမနောက် ဒုတိယဂဏန်းကို Live 2D ရဲ့ နောက်ဆုံးဂဏန်း (8) ဖြင့် အစားထိုး
+        valueLiveDigitElement.textContent = valueLiveDigit;
+
+        // 3. Main 2D Display Update
         if (digit1Element && digit2Element) {
-            const live2D = value.slice(-1) + set.slice(-1); 
             digit1Element.textContent = live2D[0];
             digit2Element.textContent = live2D[1];
         }
@@ -149,19 +161,26 @@ document.addEventListener('DOMContentLoaded', () => {
     function startAnimation() {
         if (animationTimer) return; 
         if (liveNumberElement) {
-            liveNumberElement.classList.add('blinking'); 
+            liveNumberElement.classList.add('blinking');
+            // SET/VALUE နေရာမှာလည်း animation စပါ
+            setLiveDigitElement.classList.add('blinking');
+            valueLiveDigitElement.classList.add('blinking');
         }
     }
     
-    function stopAnimation(result, set, value) {
-        if (animationTimer) {
-            clearInterval(animationTimer);
-            animationTimer = null;
-        }
+    function stopAnimation(result, setStr, valueStr) {
+        // Animation Timer ကို ဖြုတ်ဖို့မလိုတော့ပါ (CSS Blinking ကိုပဲ သုံးထား၍)
+        
         if (liveNumberElement) {
             liveNumberElement.classList.remove('blinking'); 
+            // SET/VALUE Animation ရပ်ပါ
+            setLiveDigitElement.classList.remove('blinking');
+            valueLiveDigitElement.classList.remove('blinking');
         }
         
+        // Final Result ထွက်ပြီဆိုရင် SET/VALUE ကို နောက်ဆုံးတန်ဖိုးဖြင့် Update လုပ်ရန်
+        updateAnimationDigits(setStr, valueStr);
+
         if (digit1Element && digit2Element) {
             digit1Element.textContent = result[0];
             digit2Element.textContent = result[1];
@@ -171,15 +190,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================================
     // *** HISTORY FEATURE LOGIC ***
     // ==========================================================
+    // (History Logic ကို ပြင်ဆင်ရန်မလိုအပ်ပါ၊ မူလအတိုင်း ဆက်လက်ထားရှိပါသည်)
 
     async function fetchAndRenderHistory() {
         try {
-            // Server.js မှ /api/2d/history ကို ခေါ်ယူခြင်း
             const response = await fetch(API_URL);
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-            // History API က ဒီနေ့ရဲ့ Result တစ်ခုတည်းကို Object အနေနဲ့ ပြန်ပို့ပေးပါမည်။
             const data = await response.json(); 
             
             historyResultsContainer.innerHTML = '';
@@ -192,14 +210,12 @@ document.addEventListener('DOMContentLoaded', () => {
             dateElement.textContent = data.date; 
             dailyGroup.appendChild(dateElement);
 
-            // အင်္ဂါနေ့ ပိတ်ကြောင်း စစ်ဆေးခြင်း
             if (data.isClosed) {
                 const closedMsg = document.createElement('p');
                 closedMsg.classList.add('closed-day-message');
                 closedMsg.textContent = `${data.dayOfWeek} (အင်္ဂါနေ့) - China 2D ပိတ်ပါသည်။`;
                 dailyGroup.appendChild(closedMsg);
             } else {
-                // Result ၆ ကွက် ပြသရန် Grid ဖန်တီးခြင်း
                 const grid = document.createElement('div');
                 grid.classList.add('history-results-grid');
 
