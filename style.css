@@ -1,4 +1,4 @@
-body {
+Body {
     font-family: Arial, sans-serif;
     display: flex;
     justify-content: center;
@@ -21,7 +21,7 @@ body {
 /* Header/Title Bar (Black Theme) */
 .header-title {
     display: flex;
-    justify-content: flex-start; /* ← မြှား နဲ့ Title ကို ဘယ်ဘက်မှာ ကပ်ထားရန် */
+    justify-content: flex-start;
     align-items: center;
     background-color: #333333; /* Dark Black ခေါင်းစီး */
     color: white;
@@ -33,7 +33,7 @@ body {
     font-size: 1.2rem;
     font-weight: bold;
     margin: 0;
-    margin-left: 10px; /* မြှားနဲ့ ခြားရန် */
+    margin-left: 10px;
 }
 
 .back-link {
@@ -58,6 +58,55 @@ body {
     padding: 5px;
 }
 
+/* ************************************************** */
+/* START: SET / VALUE STYLES (အသစ်ထပ်ထည့်ထားသော အပိုင်း) */
+/* ************************************************** */
+
+.set-value-container {
+    display: flex;
+    justify-content: space-between; /* ဘယ်နဲ့ညာကို တွန်းပို့ရန် */
+    align-items: flex-start;
+    width: 100%;
+    padding: 10px 15px; 
+    box-sizing: border-box;
+    background-color: #222; /* Header ထက် အနည်းငယ် အလင်းရောင်လျော့သော နောက်ခံ */
+    border-bottom: 2px solid #000;
+}
+
+.stat-box {
+    /* SET ဘယ်ဘက်ထောင့်, VALUE ညာဘက်ထောင့် */
+    text-align: left;
+    /* Dark Theme ဖြင့် လိုက်ဖက်စေရန် */
+    color: #f0f0f0; 
+    padding: 5px 0;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #aaa; /* အဖြူရောင်ထက် နည်းနည်း မှိန်သော အရောင် */
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ဂဏန်းများအတွက် စတိုင် */
+.stat-value {
+    font-size: 1.2rem;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+/* 2D Live ဂဏန်းနှင့် ချိတ်ဆက်ထားသော ဂဏန်းအတွက် အဝါရောင် (Highlight) */
+.highlight-digit {
+    color: #ffeb3b; /* ရွှေရောင်/အဝါရောင် */
+    font-weight: 900;
+}
+
+/* ************************************************** */
+/* END: SET / VALUE STYLES */
+/* ************************************************** */
+
 /* Live Result Box */
 .live-result-box {
     text-align: center;
@@ -76,15 +125,15 @@ body {
 
 /* Animation */
 .blinking {
+    /* Live 2D နှင့် SET/VALUE ဂဏန်းများအတွက် Animation */
     animation: fadeInOut 3s ease-in-out infinite;
 }
 
 @keyframes fadeInOut {
-    0% { opacity: 0; transform: scale(0.95); }
+    0% { opacity: 0.3; transform: scale(0.95); }
     50% { opacity: 1; transform: scale(1); }
-    100% { opacity: 0; transform: scale(1.05); }
+    100% { opacity: 0.3; transform: scale(1.05); }
 }
-
 
 .update-info {
     font-size: 0.9rem;
