@@ -1,4 +1,4 @@
-// public/script.js (SET/VALUE Logic ထည့်သွင်းပြီး)
+// public/script.js (SET/VALUE Logic & 2D Digit Order ပြင်ဆင်ပြီး)
 
 document.addEventListener('DOMContentLoaded', () => {
     // *** Configuration ***
@@ -18,12 +18,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const updatedTimeElement = document.getElementById('last-updated-time');
     const resultBoxes = Array.from({length: 6}, (_, i) => document.getElementById(`result-box-${i}`));
     
-    // HISTORY Page အတွက် DOM Elements
+    // History Page အတွက် DOM Elements
     const historyResultsContainer = document.getElementById('history-results-container'); 
     
-    // SET / VALUE အတွက် DOM Elements အသစ်များ
-    const setLiveDigitElement = document.getElementById('set-live-digit');
-    const valueLiveDigitElement = document.getElementById('value-live-digit');
+    // SET / VALUE အတွက် DOM Elements အသစ်များ (index.html မှာ ID ပြောင်းထားသည်)
+    const setFullDisplayElement = document.getElementById('set-full-display');
+    const valueFullDisplayElement = document.getElementById('value-full-display');
     
     let animationTimer = null; 
     
@@ -43,7 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const liveResult = data.live ? data.live.toString().padStart(2, '0') : "--"; 
             
-            // *** SET/VALUE Data အသစ်ကို ယူပါ ***
             // Server က SET, VALUE string အပြည့်အစုံကို ပို့ပေးရပါမည်။ (ဥပမာ: "1234.73", "12345.38")
             const currentSet = data.set; 
             const currentValue = data.value; 
@@ -51,8 +50,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const liveStatus = data.status; 
             let dailyResults = data.daily || []; 
             
+            // 2D Live Data ဖြင့် SET/VALUE Display များကို Update လုပ်သည်
+            updateAnimationDigits(currentSet, currentValue); 
+
             // *** Live ဂဏန်း Update ***
             if (liveStatus === "closed") {
+                // CLOSED status
                 stopAnimation("--", "--", "--"); 
                 if (checkmarkElement) {
                     checkmarkElement.classList.remove('hidden'); 
@@ -63,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             else if (liveStatus === "hold" && liveResult !== "--") {
-                // Hold ဖြစ်ရင် SET/VALUE ကို Final Result အရ Update လုပ်
+                // HOLD status
                 stopAnimation(liveResult, currentSet, currentValue);
                 if (checkmarkElement) {
                     checkmarkElement.classList.remove('hidden'); 
@@ -73,10 +76,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     updatedTimeElement.textContent = `Updated: ${data.timestamp}`;
                 }
             } else {
-                // Live ဖြစ်နေရင် Live Animation စပါ
+                // LIVE status
                 startAnimation();
-                // SET/VALUE ကို Live Data နဲ့ Update လုပ်
-                updateAnimationDigits(currentSet, currentValue); 
                 if (checkmarkElement) {
                     checkmarkElement.classList.add('hidden'); 
                 }
@@ -131,54 +132,78 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Live 2D နှင့် SET/VALUE ဂဏန်းများကို Update လုပ်ခြင်း (အဓိကပြင်ဆင်သည့်အပိုင်း)
     function updateAnimationDigits(setStr, valueStr) {
-        if (!setLiveDigitElement || !valueLiveDigitElement) return;
+        if (!setFullDisplayElement || !valueFullDisplayElement || !setStr || !valueStr) {
+             // Data မရလျှင် Default ပြသရန်
+            if (setFullDisplayElement) setFullDisplayElement.textContent = "--.---";
+            if (valueFullDisplayElement) valueFullDisplayElement.textContent = "--.---";
+            if (digit1Element) digit1Element.textContent = "-";
+            if (digit2Element) digit2Element.textContent = "-";
+            return;
+        }
 
-        // 1. Live 2D ဂဏန်းကို SET နှင့် VALUE မှ တွက်ထုတ်ခြင်း (သင့်ရဲ့ Logic: VALUE နောက်ဆုံး + SET နောက်ဆုံး)
-        // ဥပမာ- setStr = "1234.73", valueStr = "12345.38"
-        // 2D = 87 လို့ ယူဆရမှာ ဖြစ်ပါတယ် (သင့်ရဲ့ လက်ရှိ Logic အရ)
+        // 1. SET/VALUE String မှ 2D ဂဏန်းများ ခွဲထုတ်ခြင်း
+        // SET ဂဏန်း (2D ရဲ့ ရှေ့ဂဏန်း) - ဒဿမနောက် ပထမဂဏန်းကို ယူပါ (ဥပမာ "1234.73" မှ "7")
+        // setStr.slice(-2, -1) သည် string ရဲ့ နောက်ဆုံးဂဏန်းမတိုင်ခင် တစ်လုံးကို ယူသည်
+        const set2DDigit = setStr.length >= 2 ? setStr.slice(-2, -1) : "-";
         
-        // 2D ဂဏန်းအတွက် SET နှင့် VALUE မှ တန်ဖိုးများကို ယူပါ
-        const setLiveDigit = setStr ? setStr.slice(-2, -1) : "-"; // "7"
-        const valueLiveDigit = valueStr ? valueStr.slice(-1) : "-"; // "8"
+        // VALUE ဂဏန်း (2D ရဲ့ နောက်ဆုံးဂဏန်း) - နောက်ဆုံးဂဏန်းကို ယူပါ (ဥပမာ "12345.38" မှ "8")
+        const value2DDigit = valueStr.length >= 1 ? valueStr.slice(-1) : "-";
         
-        // သင့်ရဲ့ မူရင်း Logic (value.slice(-1) + set.slice(-1)) အရ 2D ဂဏန်းကို တည်ဆောက်ပါ
-        const live2D = valueLiveDigit + setLiveDigit; // "87" (ဥပမာ)
+        // 2. 2D Live Number ကို မှန်ကန်စွာ တည်ဆောက်ခြင်း (SET digit + VALUE digit)
+        const live2D = set2DDigit + value2DDigit; // ဥပမာ: "78" (FIXED)
 
-        // 2. SET/VALUE Display Update
-        // SET: ဒဿမနောက် ပထမဂဏန်းကို Live 2D ရဲ့ ပထမဂဏန်း (7) ဖြင့် အစားထိုး
-        setLiveDigitElement.textContent = setLiveDigit;
+        // 3. SET Display ကို Dynamic HTML ဖြင့် ပြသခြင်း
+        // ဥပမာ: "1234." (Prefix) + "7" (2D Digit) + "3" (Suffix)
+        const setPrefix = setStr.substring(0, setStr.length - 2); // "1234."
+        const setSuffix = setStr.substring(setStr.length - 1);    // "3"
         
-        // VALUE: ဒဿမနောက် ဒုတိယဂဏန်းကို Live 2D ရဲ့ နောက်ဆုံးဂဏန်း (8) ဖြင့် အစားထိုး
-        valueLiveDigitElement.textContent = valueLiveDigit;
+        setFullDisplayElement.innerHTML = `
+            <span>${setPrefix}</span>
+            <span id="set-2d-digit-live" class="highlight-digit">${set2DDigit}</span>
+            <span>${setSuffix}</span>
+        `;
 
-        // 3. Main 2D Display Update
+        // 4. VALUE Display ကို Dynamic HTML ဖြင့် ပြသခြင်း
+        // ဥပမာ: "12345.3" (Prefix) + "8" (2D Digit)
+        const valuePrefix = valueStr.substring(0, valueStr.length - 1); // "12345.3"
+        
+        valueFullDisplayElement.innerHTML = `
+            <span>${valuePrefix}</span>
+            <span id="value-2d-digit-live" class="highlight-digit">${value2DDigit}</span>
+        `;
+
+        // 5. Main 2D Display Update
         if (digit1Element && digit2Element) {
             digit1Element.textContent = live2D[0];
             digit2Element.textContent = live2D[1];
         }
     }
 
+    // Animation စတင်ခြင်း (Main 2D နှင့် SET/VALUE ဂဏန်းများကိုပါ Blinking လုပ်သည်)
     function startAnimation() {
-        if (animationTimer) return; 
         if (liveNumberElement) {
             liveNumberElement.classList.add('blinking');
-            // SET/VALUE နေရာမှာလည်း animation စပါ
-            setLiveDigitElement.classList.add('blinking');
-            valueLiveDigitElement.classList.add('blinking');
+            // Dynamic elements ကို ရှာပြီး Animation စပါ
+            const setLive = document.getElementById('set-2d-digit-live');
+            const valueLive = document.getElementById('value-2d-digit-live');
+            if (setLive) setLive.classList.add('blinking');
+            if (valueLive) valueLive.classList.add('blinking');
         }
     }
     
+    // Animation ရပ်တန့်ခြင်း (Final Result အတွက်)
     function stopAnimation(result, setStr, valueStr) {
-        // Animation Timer ကို ဖြုတ်ဖို့မလိုတော့ပါ (CSS Blinking ကိုပဲ သုံးထား၍)
-        
         if (liveNumberElement) {
             liveNumberElement.classList.remove('blinking'); 
-            // SET/VALUE Animation ရပ်ပါ
-            setLiveDigitElement.classList.remove('blinking');
-            valueLiveDigitElement.classList.remove('blinking');
+            // Dynamic elements ကို ရှာပြီး Animation ရပ်ပါ
+            const setLive = document.getElementById('set-2d-digit-live');
+            const valueLive = document.getElementById('value-2d-digit-live');
+            if (setLive) setLive.classList.remove('blinking');
+            if (valueLive) valueLive.classList.remove('blinking');
         }
         
         // Final Result ထွက်ပြီဆိုရင် SET/VALUE ကို နောက်ဆုံးတန်ဖိုးဖြင့် Update လုပ်ရန်
+        // (ဒီတစ်ကြိမ် ခေါ်တာဟာ Blinking မပါတဲ့ Final State အတွက် ဖြစ်သည်)
         updateAnimationDigits(setStr, valueStr);
 
         if (digit1Element && digit2Element) {
@@ -190,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================================
     // *** HISTORY FEATURE LOGIC ***
     // ==========================================================
-    // (History Logic ကို ပြင်ဆင်ရန်မလိုအပ်ပါ၊ မူလအတိုင်း ဆက်လက်ထားရှိပါသည်)
+    // (History Logic ကို မူလအတိုင်း ဆက်လက်ထားရှိပါသည်)
 
     async function fetchAndRenderHistory() {
         try {
