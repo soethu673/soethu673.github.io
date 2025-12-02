@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CHINA 2D Live Result</title>
     
+    <!-- PWA/APK အတွက် လိုအပ်သော Meta Tags များကိုလည်း ထည့်သွင်းထားပါ -->
     <meta name="theme-color" content="#333333"/>
     <link rel="manifest" href="/manifest.json">
 
@@ -25,26 +26,28 @@
             </div>  
         </div>
         
+        <!-- ************************************************** -->
+        <!-- START: SET / VALUE Display (ဂဏန်းအပြည့်အစုံ ပြောင်းလဲနိုင်ရန် ပြင်ဆင်ထားသည်) -->
         <div id="set-value-container" class="set-value-container">
             
+            <!-- SET Display -->
             <div id="set-display" class="stat-box">
                 <div class="stat-label">SET</div>
-                <div class="stat-value">
-                    <span>1234.</span>
-                    <span id="set-live-digit" class="highlight-digit">0</span>
-                    <span>0</span>
-                </div>
+                <!-- JS ကနေ ဂဏန်းအပြည့်အစုံကို Dynamic HTML ဖြင့် ထည့်သွင်းမည် -->
+                <div id="set-full-display" class="stat-value">--.---</div>
             </div>
 
+            <!-- VALUE Display -->
             <div id="value-display" class="stat-box">
                 <div class="stat-label">VALUE</div>
-                <div class="stat-value">
-                    <span>12345.0</span>
-                    <span id="value-live-digit" class="highlight-digit">0</span>
-                </div>
+                <!-- JS ကနေ ဂဏန်းအပြည့်အစုံကို Dynamic HTML ဖြင့် ထည့်သွင်းမည် -->
+                <div id="value-full-display" class="stat-value">--.---</div>
             </div>
             
         </div>
+        <!-- END: SET / VALUE Display -->
+        <!-- ************************************************** -->
+        
         <div class="live-result-box">
             <div id="animating-2d" class="live-number">
                 <span id="digit1">-</span>
@@ -88,3 +91,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+
